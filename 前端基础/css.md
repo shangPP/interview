@@ -1,5 +1,168 @@
 # CSS
 
+## BEM规范
+
+BEM规范我觉得放到css这个模块讲比较合适
+因为有了BEM，可以让css的编码变得有规范可循，使得css也变得整洁起来，拥有了很强的可维护性
+这里以elementUI的BEM规范为例
+BEM代表 块（block）、元素（element）、修饰符（modifier），三个部分结合使用，生成一套具有唯一性的class命名规范，起到样式隔离，避免css样式污染的作用
+
+如el-input , el-input__inner, el-input--mini
+
+### 定义block
+
+作用：给组件添加统一的el-前缀，通过@content将include{}中传递过来的内容导入到指定位置
+```css
+@mixin b($block) {
+  $B: $namespace+'-'+$block !global;  // 使用el-拼接组件名
+  .#{$B} {
+    @content;
+  }
+}
+```
+block示例
+```css
+// 编译前
+@include b(button) {
+  display: inline-block;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+// 编译后
+.el-button {
+  display: inline-block;
+  line-height: 1;
+  white-space: nowrap;
+}
+```
+
+### 定义element
+
+作用：
+1）通过`__`连接符将父级选择器和传入的子元素拼接起来
+2）通过hitAllSpecialNestRule函数判断父级选择器（$selector: &），是否包含`--`  `.is- ` `:`这三种字符
+3）如果父级选择器包含这几种字符，输出父级选择器包含子元素的嵌套关系
+```css
+@mixin e($element) {
+  $E: $element !global;
+  $selector: &;
+  $currentSelector: "";
+  @each $unit in $element { // $element传入的值可以单个，也可以是列表
+    $currentSelector: #{$currentSelector + "." + $B + $element-separator + $unit + ","};
+  }
+
+  @if hitAllSpecialNestRule($selector) {
+    @at-root {
+      #{$selector} {
+        #{$currentSelector} {
+          @content;
+        }
+      }
+    }
+  } @else {
+    @at-root {
+      #{$currentSelector} {
+        @content;
+      }
+    }
+  }
+}
+```
+element示例
+```css
+// 编译前
+@include b(message-box) {
+    color: blue;
+    @include m(center) {
+       padding-bottom: 30px;
+    @include e(header) {
+       padding-top: 30px;
+    }
+  }
+}
+// 编译后
+.el-message-box {
+    color: blue;
+}
+.el-message-box--center {
+    padding-bottom: 30px; 
+}
+.el-message-box--center .el-message-box__header {
+    padding-top: 30px;
+}
+```
+
+### 定义modifier(修饰符)
+
+通过`--`连接符将父级选择器和传入的修饰符拼接起来
+```js
+@mixin m($modifier) {
+  $selector: &;
+  $currentSelector: "";
+  @each $unit in $modifier {
+    $currentSelector: #{$currentSelector + & + $modifier-separator + $unit + ","};
+  }
+
+  @at-root {
+    #{$currentSelector} {
+      @content;
+    }
+  }
+}
+```
+modifier示例
+```css
+// 编译前
+@include b(button) {
+  display: inline-block;
+  @include m(primary) {
+    color:blue;
+  }
+}
+// 编译后
+.el-button {
+  display: inline-block;
+}
+.el-button--primary {
+  color:blue;
+}
+```
+通过学习elementUI这套BEM规范，可以应用到自己的项目中，使得css编码也规范起来
+
+## var() 实现换肤、换主题
+
+1）通过css`var()`函数，定义颜色变量
+2）css中引入var变量
+3）需要换肤时，通过js修改body的颜色变量
+
+换肤代码示例
+```js
+ let style = {
+    '--color-white': '#ffffff',
+    '--color-black': '#000000'
+  };
+  for (let i in style) {
+    document.body.style.setProperty(i, styleVar[i]);
+  }
+```
+缺点是兼容性差一些
+![](vx_images/190119136502567.png =400x)
+
+## link style @import及三者的区别
+
+**加载顺序的差别**
+
+1）当一个页面被加载的时候，link引用的CSS会同时被加载
+2）而@import引用的CSS会等到页面全部被下载完再被加载
+有时候浏览用@import加载CSS的页面时，可能会出现闪烁的情况
+
+**加载内容的区别**
+
+1）@import只能导入样式文件
+2）link不仅可以引入样式，还可以引入js文件
+3）style标签，它是定义在当前页面的样式
+
 ## css3新特性
 
 **CSS3 边框**
@@ -701,7 +864,7 @@ font-size: 1.2em
 
 ## 继承
 
-#### 继承相关
+### 继承相关
 
 css的继承：就是给父级设置一些属性，子级继承了父级的该属性，这就是我们的css中的继承。 官方解释，继承是一种规则，它允许样式不仅应用于特定的html标签元素，而且应用于其后代元素。
 
@@ -987,11 +1150,11 @@ IFC：行内格式化上下文
 
 ## 盒子塌陷（浮动）
 
-#### 盒子塌陷原因
+### 盒子塌陷原因
 
 当父元素没设置足够大小的时候（主要是没有设置高度时），而子元素设置了浮动的属性（如果不设置浮动，子元素会把父元素撑起来），子元素就会跳出父元素的边界（脱离文档流），尤其是当父元素的高度为auto时，而父元素中又没有其他非浮动的可见元素时，父盒子的高度就会直接塌陷为零，我们称这是**CSS高度塌陷**
 
-#### 盒子塌陷
+### 盒子塌陷
 
 本应该在父盒子内部的元素跑到了外部（或者父盒子没要把子盒子包裹起来）
 
@@ -1013,7 +1176,7 @@ IFC：行内格式化上下文
 </div>
 ```
 
-#### 解决方法（清除浮动）
+### 解决方法（清除浮动）
 
 (1) 最简单，直接，粗暴的方法就是盒子大小写死，给每个盒子设定**固定的width和height**，直到合适为止，这样的好处是简单方便，兼容性好，适合只改动少量内容不涉及盒子排布的版面。缺点是非自适应，浏览器的窗口大小直接影响用户体验
 
@@ -1072,7 +1235,7 @@ IFC：行内格式化上下文
 
 ​	例如：:before，在一个元素之前添加一些内容，并添加一些样式，虽然用户可以看见，但它实际上并不在DOM文档中。还有:after
 
-#### 区别
+### 区别
 
 - 表示⽅法
 
@@ -1101,7 +1264,12 @@ IFC：行内格式化上下文
 
   - 伪元素能够创建在DOM树中不存在的抽象对象，而且这些抽象对象是能够访问到的。
 
-+ 
+## css方面如何减少回流、重绘
+
+1）可以使用GPU硬件加速
+2）动画可以使用绝对定位或fixed，让其脱离文档流，修改动画不造成主界面的影响
+3）使用 visibility 替换 display: none（前者只会引起重绘，后者则会引发回流）
+4）避免使用 table 布局，可能很小的一个小改动会造成整个 table 的重新布局
 
 ## min-width/max-width 和 min-height/max-height 属性间的覆盖规则
 
@@ -2546,7 +2714,7 @@ window.devicePixelRatio=物理像素 /CSS像素
 2. 按照设计稿的标准开发页面，在手机上部分内容根据屏幕宽度等比缩放，部分内容按需要变化，需要缩放的元素使用 rem, vw 相对单位，不需要缩放的使用 px
 3. 固定尺寸+弹性布局，不需要缩放
 
-**viewport 适配**
+#### viewport 适配
 
 根据设计稿标准（750px 宽度）开发页面，写完后页面及元素自动缩小，适配 375 宽度的屏幕
 
@@ -2583,7 +2751,7 @@ initial-scale = 屏幕的宽度 / 设计稿的宽度
 
 缺点就是边线问题，不同尺寸下，边线的粗细是不一样的（等比缩放后），全部元素都是等比缩放，实际显示效果可能不太好
 
-**vw 适配（部分等比缩放）**
+#### vw 适配（部分等比缩放）
 
 1. 开发者拿到设计稿（假设设计稿尺寸为750px，设计稿的元素标注是基于此宽度标注）
 2. 开始开发，对设计稿的标注进行转换，把px换成vw。比如页面元素字体标注的大小是32px，换成vw为 (100/750)*32 vw
@@ -2615,7 +2783,7 @@ header {
 
 实现了按需缩放
 
-**rem 适配**
+#### rem 适配
 
 1. 开发者拿到设计稿（假设设计稿尺寸为750px，设计稿的元素标是基于此宽度标注）
 2. 开始开发，对设计稿的标注进行转换
@@ -2683,7 +2851,38 @@ header {
 
 以上的三种适配方案，都是等比缩放，放到 ipad 上时（设计稿以手机屏幕设计的），页面元素会很大很丑，有些场景下，并不需要页面整体缩放（viewport 自动处理的也很好了），所以有时只需要合理的布局即可。
 
-**弹性盒适配（合理布局）**
+rem布局的缺点
+
+字体并不合适使用rem, 字体的大小和字体宽度，并不成线性关系，会出现随着屏幕的变大，字体变的越来越大，所以需要结合媒体查询来调整字体大小
+
+#### rem+vw布局
+
+优势
+
+1）使用纯css的方式来实现，避免使用js动态计算html根元素font-size大小
+2）结合使用媒体查询，解决宽屏下（如ipad）字体过大的问题
+
+rem+vw布局的原理
+
+1）设计稿为750px时，rootValue设置为75，则屏幕宽为10rem，1rem=75px，根元素的fontSize大小为75px
+2）屏幕总共有100vw，所以1vw为7.5px ，10vw为75px， 得出1rem为10vw， 故得到根元素的fontSize为10vw
+
+在项目入口文件中引入flexible.less中，flexible.less代码如下
+```css
+@base_fontSize: 10vw;
+
+html{
+    font-size: @base_fontSize;
+}
+// 使用媒体查询，解决ipad屏幕下（宽屏）字体过大的问题
+@media screen and (min-width: 560px) {  
+    html{
+        font-size: @base_fontSize * 0.7 
+    }
+}
+```
+
+#### 弹性盒适配（合理布局）
 
 ```html
 <meta name="viewport" content="width=device-width">
@@ -2734,6 +2933,65 @@ section {
 ```
 
 如下图，包括padding-top/bottom,margin-top/bottom在内，所有padding和margin均是参考的包含块的宽度，故它们的值为200px * 20% = 40px。
+
+## 移动端实现1px
+
+**需要兼容不同的设备像素比**
+
+1）device-pixel-ratio 设备像素比 和resolution 分辨率 来区分的不同设备像素比
+2）伪类 + scale缩放 来实现1px效果（包括圆角功能）
+
+如果设备像素比为1，伪类不缩放
+如果设备像素比为2，伪类缩放为0.5
+如果设备像素比为3，伪类缩放为0.33
+
+*示例*
+```css
+// 使用scss语法实现
+@mixin side-parse($color, $border:1px, $side:all, $radius:0, $style: solid) {
+  @if ($side == all) {
+    border:$border $style $color;
+  } @else {
+    border-#{$side}:$border $style $color;
+  }
+}
+@mixin border-s1px($color, $border:1px, $side:all, $radius:0, $style: solid, $radius: 0){
+  position: relative;
+  &::after{
+    content: '';
+    position: absolute;
+    pointer-events: none;
+    top: 0; left: 0;
+    border-radius: $radius;
+    @include side-parse($color, $border, $side, $radius, $style);
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    -webkit-transform-origin: 0 0;
+    transform-origin: 0 0;  // 默认值为50% 50%
+    @media (max--moz-device-pixel-ratio: 1.49), (-webkit-max-device-pixel-ratio: 1.49), (max-device-pixel-ratio: 1.49), (max-resolution: 143dpi), (max-resolution: 1.49dppx){
+      width: 100%;
+      height: 100%;
+      border-radius: $radius;
+    }
+    @media (min--moz-device-pixel-ratio: 1.5) and (max--moz-device-pixel-ratio: 2.49), (-webkit-min-device-pixel-ratio: 1.5) and (-webkit-max-device-pixel-ratio: 2.49),(min-device-pixel-ratio: 1.5) and (max-device-pixel-ratio: 2.49),(min-resolution: 144dpi) and (max-resolution: 239dpi),(min-resolution: 1.5dppx) and (max-resolution: 2.49dppx){
+      width: 200%;
+      height: 200%;
+      transform: scale(.5);
+      -webkit-transform: scale(.5);
+      border-radius: $radius * 2;
+    }
+    @media (min--moz-device-pixel-ratio: 2.5), (-webkit-min-device-pixel-ratio: 2.5),(min-device-pixel-ratio: 2.5), (min-resolution: 240dpi),(min-resolution: 2.5dppx){
+      width: 300%;
+      height: 300%;
+      transform: scale(0.333);
+      -webkit-transform: scale(0.333);
+      border-radius: $radius * 3;
+    }
+  }
+}
+```
+
+
 
 ## css字体大小设置（em，rem，px）
 
@@ -2886,6 +3144,21 @@ img{vertical-align:top;}
     --><li>这是另另另一个li</li>
 </ul>
 ```
+## CSS3 硬件加速
+
+CSS3 硬件加速又叫做 `GPU 加速`，是利用 GPU 进行渲染，减少 CPU 操作的一种优化方案，可以提升网页的性能
+
+**开启GPU硬件加速的属性有：**
+
+1）transform不为none
+2）opacity
+3）filter
+4）will-change
+
+**硬件加速的弊端**
+
+GPU处理过多的内容会导致内存问题；
+不在动画结束的时候关闭硬件加速，会出现字体模糊
 
 ## 关于transform开启GPU加速渲染，相比top&left，优势在哪里
 
@@ -2932,6 +3205,11 @@ relative相对定位时，无论元素是否移动，仍然占据原来的空间
 
 sticky是2017年浏览器才开始支持，会产生动态效果，类似relative和fixed的结合，一个实例是"[动态固定](http://www.ruanyifeng.com/blog/2019/11/css-position.html)"，生效前提是必须搭配`top,left,bottom,right`一起使用，不能省略，否则等同于`relative`定位，不产生"动态固定"的效果
 
+**以下情况粘性布局会失效**
+
+1）父元素设置overflow：hidden
+2）父元素高度不够或者高度为内部元素高度之和（总之没有剩余的高度，不会产生滚动）
+
 ## 对css sprits的理解，好处是什么
 
 css sprits又名雪碧图，也叫css精灵，开发人员会将很多小图标合并在一起之后的图片成为雪碧图，使用时通过background-image、background-position和background-size属性，将对应的小图标添加元素中
@@ -2945,3 +3223,59 @@ css sprits又名雪碧图，也叫css精灵，开发人员会将很多小图标�
 
 - 维护成本较高，需要改动这张合并的图片
 - 加载优势在http2之后不复存在，http2采用多路复用，多张图片也可以重复使用一个连接
+
+## animation 动画
+
+`animation：动画名称 + 动画时间 + 速度曲线 + 是否延迟 + 动画次数 + 是否逆向播放`
+```css
+// linear 线性的  infinite 无穷的   alternate 逆向的
+animation: mymove 2s linear infinite alternate;   
+```
+实现不间断播报
+![640?wx_fmt=gif&tp=webp&wxfrom=5&wx_lazy=1](vx_images/430273834024530 =400x)
+利用translate，修改内容在父元素中 y 轴的位置，来实现不间断播报效果
+为了保证广播滚动效果的连贯性，防止滚动到最后一帧时没有内容，**需要多添加一条重复数据进行填充**
+translate设置的高度为列表的总高度（不包含最后一条插入的数据）
+
+示例
+```html
+<html>
+  <div class="container">
+    <div class="ul">
+      <div class="li">小王同学加入了凹凸实验室</div>
+      <div class="li">小李同学加入了凹凸实验室</div>
+      <div class="li">小赵同学加入了凹凸实验室</div>
+      <div class="li">小马同学加入了凹凸实验室</div>
+      <!-- 重复插入第一条数据 -->
+      <div class="li">小王同学加入了凹凸实验室</div>
+    </div>
+  </div>
+  <style>
+    .container {
+      height: 30px;
+      overflow: hidden;
+      background-color: #256def;
+      color: #ffffff;
+      width: 300px;
+      border-radius: 30px;
+      text-align: center;
+    }
+    .ul{
+      animation: scroll 5s linear infinite;
+    }
+    .li{
+      line-height: 30px;
+      height: 30px;
+    } 
+    @keyframes scroll {
+    0% {
+       transform: translate(0,0)
+    }
+    100% {
+      /* 120 = 4*30 不包含最后一条数据的总高度*/
+      transform: translate(0,-120px)
+    }
+  }
+  </style>
+</html>
+```
