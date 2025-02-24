@@ -147,7 +147,7 @@ modifier示例
   }
 ```
 缺点是兼容性差一些
-![](vx_images/190119136502567.png =400x)
+![](image/var.png =400x)
 
 ## link style @import及三者的区别
 

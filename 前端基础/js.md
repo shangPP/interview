@@ -13,7 +13,7 @@ Javascript 代码都是在执行上下文中运行的
 生成变量对象、建立作用域链、确定this的指向
 2）执行阶段
 变量赋值、函数的引用、执行其他代码
-![](vx_images/459802266798409.png =400x)
+![](image/执行上下文生命周期.png =400x)
 
 **变量对象**
 
@@ -43,7 +43,7 @@ bar(3); // 2. bar上下文环境
 ```
 
 执行栈图解
-![](vx_images/594237491659119.png =400x)
+![](image/执行栈.png =400x)
 
 **全局、函数、eval执行上下文**
 
@@ -379,7 +379,7 @@ fromIndex：可选
 
 1. 严格区分大小写
 
-2. 在使用indexOf检索数组时，用‘===’去匹配，意味着会检查数据类型
+2. 在使用indexOf检索数组时，用 === 去匹配，意味着会检查数据类型
 
 ## iframe的优缺点
 
@@ -1206,7 +1206,7 @@ script(主程序代码)——>process.nextTick——>promise——>setTimeout—
 - setImmediate：输出1，依据上面优先级，应该先setTimeout，但是注意，setTimeout 设置 10ms 延时
 - setTimeout ： 输出2
 
-### 传入[1,[[2],3,4],5]，返回[1,2,3,4,5]
+### 传入[ 1, [[2], 3 ,4 ],5]，返回[1,2,3,4,5]
 
 #### 递归
 
@@ -1606,12 +1606,12 @@ console.log([]== 0);  // true
 解析：
 
 原始值的比较是值的比较：
-它们的值相等时它们就相等（==）
+它们的值相等时它们就相等
 对象和原始值不同，对象的比较并非值的比较,而是引用的比较：
 即使两个对象包含同样的属性及相同的值，它们也是不相等的
 即使两个数组各个索引元素完全相等，它们也是不相等的,所以[]!=[]
 
-[]==0,是数组进行了隐式转换，空数组会转换成数字0，所以相等
+0,是数组进行了隐式转换，空数组会转换成数字0，所以相等
 
 ### 三数之和
 
@@ -3963,14 +3963,14 @@ obj.foo2()()
 
 原型链是查找对象上的属性，作用域链是查找当前上下文中的变量
 
-### __proto__、prototype、constructor属性介绍
+### \_\_proto\_\_、prototype、constructor属性介绍
 
 1）js中对象分为两种，普通对象和函数对象
-2）__proto__和constructor是对象独有的。prototype属性是函数独有的，它的作用是包含可以给特定类型的所有实例提供共享的属性和方法；但是在 JS 中，函数也是对象，所以函数也拥有__proto__和 constructor属性
+2）\_\_proto__和constructor是对象独有的。prototype属性是函数独有的，它的作用是包含可以给特定类型的所有实例提供共享的属性和方法；但是在 JS 中，函数也是对象，所以函数也拥有__proto__和 constructor属性
 3）constructor属性是对象所独有的，它是一个对象指向一个函数，这个函数就是该对象的构造函数
 构造函数.prototype.constructor === 该构造函数本身
 4）一个对象的__proto__（即对象创建的实例）指向其构造函数的prototype
-函数创建的对象.__proto__ === 该函数.prototype
+函数创建的对象.\_\_proto__ === 该函数.prototype
 5）特殊的Object、Function
 ```js
 console.log(Function.prototype === Function.__proto__); // true
@@ -4224,8 +4224,8 @@ inheritPrototype(Child, Parent);
 
 1. 创建空对象；
    var obj = {};
-2. 设置新对象的constructor属性为构造函数的名称，设置新对象的**__proto__**属性指向构造函数的prototype对象；
-   obj.**__proto__** = ClassA.prototype;
+2. 设置新对象的constructor属性为构造函数的名称，设置新对象的 ** \_\_proto\_\_** 属性指向构造函数的prototype对象；
+   obj.**\_\_proto\_\_** = ClassA.prototype;
    扩展了新对象的原型链。
 3. 使用新对象调用函数，函数中的this被指向新实例对象：
    ClassA.call(obj);　　//{}.构造函数();
@@ -5605,7 +5605,7 @@ littlePoorSandbox(code, ctxProxy);
 执行func(foo)函数时，会报错Uncaught Error: Not found - foo!
 
 达到预期效果：如果上下文对象中不存在该变量则提示对应的错误
-![](vx_images/536481597649621.png =400x)
+![](image/with+proxy执行结果.png =400x)
 
 ### 天然的优质沙箱（iframe）
 
@@ -5677,7 +5677,7 @@ Object.prototype.toString(); // 并没有打印 Traped
 **JSBridge的作用**
 
 通过JSBridge可以实现 H5 和 原生之间的双向通信，主要是给 H5 提供调用 原生（Native）功能的接口，让混合开发中的 H5 可以方便地使用地址位置、摄像头甚至支付等原生功能
-![](vx_images/60505538421975.png =400x)
+![](image/jsBridge.png =400x)
 
 **JSBridge 的通信原理**
 
