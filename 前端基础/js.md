@@ -3618,20 +3618,20 @@ Function.prototype.Call = function(context, ...args) {
   // this指向调用call的函数
   context[fn] = this;
   // 隐式绑定this，如执行obj.foo(), foo内的this指向obj
-  let res = context[fn](...args "fn");
+  let res = context[fn](...args);
   // 执行完以后，删除新增加的属性
   delete context[fn];
   return res;
 };
 
 // apply与call相似，只有第二个参数是一个数组，
-Function.prototype.Apply = function(context, args) {
+Function.prototype.Apply = function(context, args=[]) {
   if (!context || context === null) {
     context = window;
   }
   let fn = Symbol();
   context[fn] = this;
-  let res = context[fn](...args "fn");
+  let res = context[fn](...args);
   delete context[fn];
   return res;
 };
@@ -3648,12 +3648,12 @@ Function.prototype.Bind = function(context, ...args) {
       // result如果作为构造函数被调用，this指向的是new出来的对象
       // this instanceof fn，判断new出来的对象是否为fn的实例
       this[f] = fn;
-      this[f](...args1, ...args "f");
+      this[f](...args, ...args1);
       delete this[f];
     } else {
       // bind返回的函数作为普通函数被调用时
       context[f] = fn;
-      context[f](...args1, ...args "f");
+      context[f](...args, ...args1);
       delete context[f];
     }
   };
