@@ -188,6 +188,25 @@ object：普通对象，数组对象，正则对象，日期对象，Math数学�
 1. Object.assign 会将 source里面的可枚举属性复制到 target，如果和 target 的已有属性重名，则会覆盖。
 2. 后续的 source 会覆盖前面的 source 的同名属性。
 3. Object.assign 复制的是属性值，如果属性值是一个引用类型，那么复制的其实是引用地址，就会存在引用共享的问题。
+**实现** 
+```js
+Object.assign = function(target, ...source){
+	if (target == null) {
+		throw new Error("target is null")
+	}
+	let obj = Object(target)
+	source.forEach(item=>{
+		if (item != null){
+			for(let key in item){
+				if (item.hasOwnProperty(key)) {
+					obj[key] = item[key]
+				}
+			}
+		}
+	}
+	return obj
+}
+```
 
 ## constructor的理解
 
@@ -468,7 +487,7 @@ instanceof 原理
 ```js
 function new_instance_of(leftValue, rightValue) {
     let rightProto = rightValue.prototype; // 取右表达式的 prototype 值
-    leftValue = leftValue.__proto__; // 取左表达式的__proto__值
+    let leftValue = leftValue.__proto__; // 取左表达式的__proto__值
     while (true) {
         if (leftValue === null) {
             return false;
@@ -1206,7 +1225,7 @@ script(主程序代码)——>process.nextTick——>promise——>setTimeout—
 - setImmediate：输出1，依据上面优先级，应该先setTimeout，但是注意，setTimeout 设置 10ms 延时
 - setTimeout ： 输出2
 
-### 传入[ 1, [[2], 3 ,4 ],5]，返回[1,2,3,4,5]
+### 传入[ 1, [[2], 3 ,4 ],5]，返回[1,2,3,4,5] 数组扁平化
 
 #### 递归
 
@@ -2804,6 +2823,8 @@ Promise.race([p5, p6])
 
 ### Promise.resolve(value)
 
+Promsie.resolve(value) 可以将任何值转成值为 value 状态是 fulfilled 的 Promise，但如果传入的值本身是 Promise 则会原样返回它。
+
 1. 语法
 
 ```js
@@ -2882,8 +2903,27 @@ console.log('one');
 // two
 // three
 ```
+**实现** 
+```js
+Promise.resolve(value) {
+	if (value && value instanceof Promise) {
+		return value
+	} else if (value && typeof value === "object" && value.then === "function") {
+		let then = value.then
+		return new Promise(resolve=>{
+			then(resolve)
+		})
+	} else if(value) {
+		return new Promise(resolve => resolve(value))
+	} else {
+		return new Promise(resolve => resolve())
+	}
+}
+```
 
 ### Promise.reject(reason)
+
+和 Promise.resolve() 类似，Promise.reject() 会实例化一个 rejected 状态的 Promise。但与 Promise.resolve() 不同的是，如果给 Promise.reject() 传递一个 Promise 对象，则这个对象会成为新 Promise 的值。
 
 1. 语法
 
@@ -3032,7 +3072,11 @@ new Promise((resolve, reject) => {
 ### 手写race、all
 
 race：返回promises列表中第一个执行完的结果
+- Promise.race 会返回一个由所有可迭代实例中第一个 fulfilled 或 rejected 的实例包装后的新实例。
 all：返回promises列表中全部执行完的结果
+- 传入的所有 Promsie 都是 fulfilled，则返回由他们的值组成的，状态为 fulfilled 的新 Promise；
+- 只要有一个 Promise 是 rejected，则返回 rejected 状态的新 Promsie，且它的值是第一个 rejected 的 Promise 的值；
+- 只要有一个 Promise 是 pending，则返回一个 pending 状态的新 Promise；
 ```js
 class Promise {
   // race静态方法，返回promises列表中第一个执行完的结果
@@ -3388,7 +3432,7 @@ derer：有derer的话,加载后续文档元素的过程将和 script.js 的加�
 <script defer src="script.js"></script>
 ```
 
-## 循环 i，setTimeout中输出什么，如何解决(块级作用域，函数作用域)
+## 每隔一秒打印1,2,3,4
 
 **for循环setTimeout输出1-10解决方式问题来源**
 
@@ -4252,7 +4296,7 @@ function selfNew(fn, ...args) {
     // 调用构造函数，使用apply，将this指向新生成的对象
     let res = fn.apply(instance, args);
     // 如果fn函数有返回值，并且返回值是一个对象或方法，则返回该对象，否则返回新生成的instance对象
-    return typeof res === "object" || typeof res === "function" ? res : instance;
+    return ((typeof res === "object" && res !== null) || typeof res === "function") ? res : instance;
 }
 ```
 
@@ -5807,25 +5851,9 @@ window.setupWebViewJavascriptBridge(bridge => {
 
 **防抖：**
 
-在事件被触发n秒后再执行回调，如果在这n秒内又被触发，则重新计时。
+在事件被触发n秒后再执行回调，如果在这n秒内又被触发，则重新计时。场景：输入框匹配
 
-根据函数防抖思路设计出第一版的最简单的防抖代码：
-
-```
-var timer; // 维护同一个timer
-function debounce(fn, delay) {
-    clearTimeout(timer);
-    timer = setTimeout(function(){
-        fn();
-    }, delay);
-}
-```
-
-上面例子中的debounce就是防抖函数，在document中鼠标移动的时候，会在onmousemove最后触发的1s后执行回调函数testDebounce；如果我们一直在浏览器中移动鼠标（比如10s），会发现会在10 + 1s后才会执行testDebounce函数（因为clearTimeout(timer)），这个就是函数防抖。
-
-在上面的代码中，会出现一个问题，var timer只能在setTimeout的父级作用域中，这样才是同一个timer，并且为了方便防抖函数的调用和回调函数fn的传参问题，我们应该用闭包来解决这些问题。
-
-优化后的代码：
+为了方便防抖函数的调用和回调函数fn的传参问题，我们应该用闭包来解决这些问题。
 
 ```js
 function debounce(fn, delay) {
@@ -5847,8 +5875,23 @@ function debounce(fn, delay) {
 
 **节流：**
 
-每隔一段时间，只执行一次函数。
+每隔一段时间，只执行一次函数。场景：长列表滚动节流
 
+```js
+let throttle = (fn,time = 1000) => {  
+    let flag = true;  
+  
+    return function (...args){  
+        if(flag){  
+            flag = false;  
+            setTimeout(()=>{  
+                flag = true;  
+                fn(...args)  
+            },time)  
+        }  
+    }  
+}
+```
 - 定时器实现节流函数：
 
   ```js
