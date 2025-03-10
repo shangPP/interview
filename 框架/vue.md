@@ -20,9 +20,11 @@ v-model在内部为不同的输入元素使用不同的属性并抛出不同的�
 
 vue内部利用Object.defineProperty监听数据变化，使数据具有可观测性，结合发布订阅模式，在数据发生变化时更新视图
 
+[[#双向绑定原理]]
+
 - 利用Proxy或Object.defineProperty生成的Observer针对对象/对象的属性进行"劫持"，在属性发生变化后通知订阅者
 - 解析器Compile解析模板中的Directive(指令)，收集指令所依赖的方法和数据，等待数据变化然后进行渲染
-- Watcher属于Observer和Compile桥梁,它将接收到的Observer产生的数据变化，并根据Compile提供的指令进行视图渲染，使得数据变化促使视图变化
+- Watcher属于Observer和Compile桥梁，它将接收到的Observer产生的数据变化，并根据Compile提供的指令进行视图渲染，使得数据变化促使视图变化
 
 ```js
 // 简单的双向数据绑定
@@ -41,7 +43,7 @@ Object.keys(data).forEach(function(key) {
 });
 ```
 
-v-model只不过是一个语法糖而已,真正的实现靠的还是
+v-model只不过是一个语法糖而已，真正的实现靠的还是
 
 1. v-bind:绑定响应式数据
 2. 触发oninput 事件并传递数据
@@ -62,39 +64,44 @@ v-model只不过是一个语法糖而已,真正的实现靠的还是
 
 组件通信的方式有以下8种方法：
 
-1. props和$emit
+### 1. props和$emit
 
    这是最最常用的父子组件通信方式，父组件向子组件传递数据是通过prop传递的，子组件传递数据给父组件是通过$emit触发事件来做到的
 
-2. attrs和listeners
+### 2. attrs和listeners
+
+[[#组件传值-attrs和listeners]]
 
    第一种方式处理父子组件之间的数据传输有一个问题：如果多层嵌套，父组件A下面有子组件B，组件B下面有组件C,这时如果组件A想传递数据给组件C怎么办呢?
 
    如果采用第一种方法，我们必须让组件A通过prop传递消息给组件B，组件B在通过prop传递消息给组件C；要是组件A和组件C之间有更多的组件，那采用这种方式就很复杂了。从Vue 2.4开始，提供了attrs和listeners来解决这个问题，能够让组件A直接传递消息给组件C。
 
-3. v-model
+### 3. v-model
 
    父组件通过v-model传递值给子组件时，会自动传递一个value的prop属性，在子组件中通过this.$emit(‘input',val)自动修改v-model绑定的值
 
-4. provide和inject
+### 4. provide和inject
 
    父组件中通过provider来提供变量，然后在子组件中通过inject来注入变量。不论子组件有多深，只要调用了inject那么就可以注入provider中的数据。而不是局限于只能从当前父组件的prop属性来获取数据，只要在父组件的生命周期内，子组件都可以调用。
 
-5. 中央事件总线
+### 5. 中央事件总线
+
+[[#组件传值-事件总线]]
 
    上面方式都是处理的父子组件之间的数据传递，那如果两个组件不是父子关系呢?也就是兄弟组件如何通信?
 
    这种情况下可以使用中央事件总线的方式。新建一个Vue事件bus对象，然后通过bus.emit触发事件，bus.on监听触发的事件。
 
-6. parent和children（见 $root, $ref, $parents的使用）
+### 6. parent和children
+[[#\$root、\$refs、$parent的使用]]
 
 ![父子通信](vue-image/父子通信.png)
 
-7. boradcast和dispatch
+### 7. boradcast和dispatch
 
    vue1.0中提供了这种方式，但vue2.0中没有，但很多开源软件都自己封装了这种方式，比如min ui、element ui和iview等。 比如如下代码，一般都作为一个mixins去使用, broadcast是向特定的父组件触发事件，dispatch是向特定的子组件触发事件，本质上这种方式还是on和emit的封装，但在一些基础组件中却很实用
 
-8. vuex处理组件之间的数据交互
+### 8. vuex处理组件之间的数据交互
 
    如果业务逻辑复杂，很多组件之间需要同时处理一些公共的数据，这个时候采用上面这一些方法可能不利于项目的维护，vuex的做法就是将这一些公共的数据抽离出来，然后其他组件就可以对这个公共数据进行读写操作，这样达到了解耦的目的
 
@@ -191,7 +198,7 @@ var app=new Vue({
 
 **解析：**
 
-- C组件中能直接触发getCData的原因在于 B组件调用C组件时 使用 v-on 绑定了$listeners 属性
+- C组件中能直接触发getCData的原因在于 B组件调用C组件时使用 v-on 绑定了$listeners 属性
 - 通过v-bind 绑定$attrs属性，C组件可以直接获取到A组件中传递下来的props(除了B组件中props声明的)
 
 ## 组件传值-事件总线
@@ -259,11 +266,15 @@ var app=new Vue({
 
 实现数据绑定的做法有大致如下几种：
 
-**发布者-订阅者模式:** 一般通过sub, pub的方式实现数据和视图的绑定监听，更新数据方式通常做法是vm.set('property', value)
+### 发布者-订阅者模式
+
+一般通过sub, pub的方式实现数据和视图的绑定监听，更新数据方式通常做法是vm.set('property', value)
 
 这种方式现在毕竟太low了，我们更希望通过vm.property = value这种方式更新数据，同时自动更新视图，于是有了下面两种方式
 
-**脏值检查:** angular.js 是通过脏值检测的方式比对数据是否有变更，来决定是否更新视图，最简单的方式就是通过setInterval()定时轮询检测数据变动，当然Google不会这么low，angular只有在指定的事件触发时进入脏值检测，大致如下：
+### 脏值检查
+
+angular.js 是通过脏值检测的方式比对数据是否有变更，来决定是否更新视图，最简单的方式就是通过setInterval()定时轮询检测数据变动，当然Google不会这么low，angular只有在指定的事件触发时进入脏值检测，大致如下：
 
 - DOM事件，譬如用户输入文本，点击按钮等。( ng-click )
 - XHR响应事件 ( $http )
@@ -271,21 +282,21 @@ var app=new Vue({
 - Timer事件( timeout，interval )
 - 执行 digest()或apply()
 
-**数据劫持:** vue.js 则是采用数据劫持结合发布者-订阅者模式的方式，通过Object.defineProperty()来劫持各个属性的setter，getter，在数据变动时发布消息给订阅者，触发相应的监听回调。
+### 数据劫持:
+
+vue.js 则是采用数据劫持结合发布者-订阅者模式的方式，通过Object.defineProperty()来劫持各个属性的setter，getter，在数据变动时发布消息给订阅者，触发相应的监听回调。
 
 ## vue2双向绑定的缺陷
 
 Vue2.0的数据响应是采用数据劫持结合发布者-订阅者模式的方式，通过Object.defineProperty () 来劫持各个属性的setter、getter，但是它并不算是实现数据的响应式的完美方案，某些情况下需要对其进行修补或者hack。这也是它的缺陷，主要表现在两个方面：
 
-1. vue 实例创建后，无法检测到对象属性的新增或删除，只能追踪到数据是否被修改
+### 1. 不能检测到对象属性的新增或删除
 
-**解析：**
+vue 实例创建后，无法检测到对象属性的新增或删除，只能追踪到数据是否被修改(Object.defineProperty只能劫持对象的属性)。
 
-1. vue 实例创建后，无法检测到对象属性的新增或删除，只能追踪到数据是否被修改(Object.defineProperty只能劫持对象的属性)。
+当创建一个Vue实例时，将遍历所有DOM对象，并为每个数据属性添加了get和set。get和set 允许Vue观察数据的更改并触发更新。但是，如果你在Vue实例化后添加（或删除）一个属性，这个属性不会被vue处理，改变get和set。
 
-   当创建一个Vue实例时，将遍历所有DOM对象，并为每个数据属性添加了get和set。get和set 允许Vue观察数据的更改并触发更新。但是，如果你在Vue实例化后添加（或删除）一个属性，这个属性不会被vue处理，改变get和set。
-
-   解决方案：
+解决方案：
 
    ```js
    Vue.set(obj, propertName/index, value)
@@ -297,18 +308,18 @@ Vue2.0的数据响应是采用数据劫持结合发布者-订阅者模式的方�
    data.location = {...data, z: 100}
    ```
 
-2. 不能监听数组的变化
+### 2. 不能监听数组的变化
 
-   vue在实现数组的响应式时，它使用了一些hack，把无法监听数组的情况通过重写数组的部分方法来实现响应式，这也只限制在数组的push/pop/shift/unshift/splice/sort/reverse七个方法，其他数组方法及数组的使用则无法检测到，例如如下两种使用方式
+vue在实现数组的响应式时，它使用了一些hack，把无法监听数组的情况通过重写数组的部分方法来实现响应式，这也只限制在数组的push/pop/shift/unshift/splice/sort/reverse七个方法，其他数组方法及数组的使用则无法检测到，例如如下两种使用方式
 
-   ```javascript
-   vm.items[index] = newValue;
-   vm.items.length
-   ```
+```javascript
+vm.items[index] = newValue;
+vm.items.length
+```
 
-   vue实现数组响应式的方法
+vue实现数组响应式的方法
 
-   通过重写数组的Array.prototype对应的方法，具体来说就是重新指定要操作数组的prototype，并重新改prototype中对应上面的7个数组方法，通过下面代码简单了解下实现原理：
+通过重写数组的Array.prototype对应的方法，具体来说就是重新指定要操作数组的prototype，并重新改prototype中对应上面的7个数组方法，通过下面代码简单了解下实现原理：
 
    ```js
    const methods = ['pop','shift','unshift','sort','reverse','splice', 'push'];
@@ -346,7 +357,7 @@ Object.defineProperty兼容性较好，但不能直接监听数组的变化，�
 
 vue3.0 实现数据双向绑定是通过**Proxy**
 
-**Proxy**是 ES6 中新增的一个特性，翻译过来意思是"代理"，用在这里表示由它来“代理”某些操作。 Proxy 让我们能够以简洁易懂的方式控制外部对对象的访问。其功能非常类似于设计模式中的代理模式。
+**Proxy**是 ES6 中新增的一个特性，翻译过来意思是"代理"，用在这里表示由它来”代理“某些操作。 Proxy 让我们能够以简洁易懂的方式控制外部对对象的访问。其功能非常类似于设计模式中的代理模式。
 
 Proxy 可以理解成，在目标对象之前架设一层“拦截”，外界对该对象的访问，都必须先通过这层拦截，因此提供了一种机制，可以对外界的访问进行过滤和改写。
 
@@ -1336,7 +1347,7 @@ http {  //在 http中配置如下代码，
 **单页面缺点：**
 不利于seo；导航不可用，如果一定要导航需要自行实现前进、后退。（由于是单页面不能用浏览器的前进后退功能，所以需要自己建立堆栈管理）；初次加载时耗时多；页面复杂度提高很多。
 
-## `$root`、$refs、$parent的使用
+## \$root、\$refs、$parent的使用
 
 $root
 可以用来获取vue的根实例，比如在简单的项目中将公共数据放在vue根实例上(可以理解为一个全局 store )，因此可以代替vuex实现状态管理；

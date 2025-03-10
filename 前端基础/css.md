@@ -2912,8 +2912,8 @@ section {
 如果设备像素比为2，伪类缩放为0.5
 如果设备像素比为3，伪类缩放为0.33
 
-*示例*
-```css
+**示例**
+```scss
 // 使用scss语法实现
 @mixin side-parse($color, $border:1px, $side:all, $radius:0, $style: solid) {
   @if ($side == all) {
@@ -2958,113 +2958,102 @@ section {
 }
 ```
 
-
-
 ## css字体大小设置（em，rem，px）
 
 **px（绝对长度单位）**
 
-相信对于前端来说px这个单位是大家并不陌生，px这个单位，兼容性可以说是相当可以，大家对px的了解肯 定是没有很大的问题的。
+相信对于前端来说px这个单位是大家并不陌生，px这个单位，兼容性可以说是相当可以，大家对px的了解肯定是没有很大的问题的。
 
-**em（相对长度单位）**
+### em（相对长度单位）
 
 **使用：**
 
 1. 浏览器的默认字体都是16px，那么1em=16px，以此类推计算12px=0.75em，10px=0.625em,2em=32px；
-
-2. 这样使用很复杂，很难很好的与px进行对应,也导致书写、使用、视觉的复杂(0.75em、0.625em全是小数点)；
-
+2. 这样使用很复杂，很难很好的与px进行对应，也导致书写、使用、视觉的复杂(0.75em、0.625em全是小数点)；
 3. 为了简化font-size的换算，我们在body中写入一下代码
 
    ```css
    body {font-size: 62.5%;  } /*  公式16px*62.5%=10px  */ 
    ```
 
-   这样页面中1em=10px,1.2em=12px,1.4em=14px,1.6em=16px，使得视觉、使用、书写都得到了极大的帮助。
+这样页面中1em=10px，1.2em=12px，1.4em=14px，1.6em=16px，使得视觉、使用、书写都得到了极大的帮助。
 
-   例子如下：
+例子如下：
 
    ```html
    <div class="font1" style='font-size:1.6em'>我是1.6em</div>
    ```
 
    缺点：
+1. em的值并不是固定的；
+2. em会继承父级元素的字体大小（参考物是父元素的font-size；）；
+3. em中所有的字体都是相对于父元素的大小决定的；所以如果一个设置了font-size:1.2em的元素在另一个设置了font-size:1.2em的元素里，而这个元素又在另一个设置了font-size:1.2em的元素里，那么最后计算的结果是1.2X1.2X1.2=1.728em
 
-   1. em的值并不是固定的；
+```html
+  <div class="big">
+	  我是大字体
+	 <div class="small">我是小字体</div>
+  </div>
+```
 
-   2. em会继承父级元素的字体大小（参考物是父元素的font-size；）；
+  样式为
 
-   3. em中所有的字体都是相对于父元素的大小决定的；所以如果一个设置了font-size:1.2em的元素在另一个设置了font-size:1.2em的元素里，而这个元素又在另一个设置了font-size:1.2em的元素里，那么最后计算的结果是1.2X1.2X1.2=1.728em
+```html
+<style>
+   body {font-size: 62.5%; } /*  公式:16px*62.5%=10px  */ 
+  .big{font-size: 1.2em}
+  .small{font-size: 1.2em}
+</style>
+```
 
-      ```html
-      <div class="big">
-          我是大字体
-         <div class="small">我是小字体</div>
-      </div>
-      ```
+  但运行结果small的字体大小为：1.2em\*1.2em=1.44em
 
-      样式为
-
-      ```html
-      <style>
-           body {font-size: 62.5%; } /*  公式:16px*62.5%=10px  */ 
-          .big{font-size: 1.2em}
-          .small{font-size: 1.2em}
-      </style>
-      ```
-
-      但运行结果small的字体大小为：1.2em*1.2em=1.44em
-
-   **rem（相对长度单位）**
+### rem（相对长度单位）
 
 **使用：**
 
 1. 浏览器的默认字体都是16px，那么1rem=16px，以此类推计算12px=0.75rem，10px=0.625rem，2rem=32px；
-
 2. 这样使用很复杂，很难很好的与px进行对应,也导致书写、使用、视觉的复杂(0.75rem、0.625em全是小数点) ；
-
 3. 为了简化font-size的换算，我们在根元素html中加入font-size: 62.5%;
 
-   ```css
-   html {font-size: 62.5%;  } /*  公式16px*62.5%=10px  */  
-   ```
+```css
+html {font-size: 62.5%;  } /*  公式16px*62.5%=10px  */  
+```
 
-   这样页面中1rem=10px,1.2rem=12px,1.4rem=14px,1.6rem=16px;使得视觉、使用、书写都得到了极大的帮助；
+这样页面中1rem=10px，1.2rem=12px，1.4rem=14px，1.6rem=16px;使得视觉、使用、书写都得到了极大的帮助；
 
-   ```html
-   <div class="font1" style='font-size:1.6rem'>我是1.6rem=16px</div>
-   ```
+```html
+<div class="font1" style='font-size:1.6rem'>我是1.6rem=16px</div>
+```
 
 特点：
+1. rem单位可谓集相对大小和绝对大小的优点于一身
+2. 和em不同的是rem总是相对于根元素(如:root{})，而不像em一样使用级联的方式来计算尺寸。这种相对单位使用起来更简单。
+3. rem支持IE9及以上，意思是相对于根元素html（网页），不会像em那样，依赖于父元素的字体大小，而造成混乱。使用起来安全了很多。
 
-1. 1. rem单位可谓集相对大小和绝对大小的优点于一身
+```html
+<div class="big">
+  我是14px=1.4rem
+  <div class="small">我是12px=1.2rem</div>
+</div>
+```
 
-   2. 和em不同的是rem总是相对于根元素(如:root{})，而不像em一样使用级联的方式来计算尺寸。这种相对单位使用起来更简单。
+```html
+<style>
+  html {font-size: 10px;  } /*  公式16px*62.5%=10px  */  
+  .big{font-size: 1.4rem}
+  .small{font-size: 1.2rem}
+</style>
+```
 
-   3. rem支持IE9及以上，意思是相对于根元素html（网页），不会像em那样，依赖于父元素的字体大小，而造成混乱。使用起来安全了很多。
-
-      ```html
-      <div class="big">
-          我是14px=1.4rem<div class="small">我是12px=1.2rem</div>
-      </div>
-      ```
-
-      ```html
-      <style>
-          html {font-size: 10px;  } /*  公式16px*62.5%=10px  */  
-          .big{font-size: 1.4rem}
-          .small{font-size: 1.2rem}
-      </style>
-      ```
-
-   **注意：**
+**注意：**
 
 - 值得注意的浏览器支持问题： IE8，Safari 4或 iOS 3.2中不支持rem单位。
-- 如果你的用户群都使用最新版的浏览器，那推荐使用rem，如果要考虑兼容性，那就使用px,或者两者同时使用。
+- 如果你的用户群都使用最新版的浏览器，那推荐使用rem，如果要考虑兼容性，那就使用px，或者两者同时使用。
 
 ## css：inline-block 的 div 之间的空隙，原因及解决
 
-display:inline-block布局的元素在chrome下会出现几像素的间隙，原因是因为我们在编辑器里写代码的时候，同级别的标签不写在同一 行以保持代码的整齐可读性，即inline-block布局的元素在编辑器里不在同一行，即存在换行符，因此这就是著名的inline-block“换行 符/空格间隙问题”。如果inline-block元素间有空格或是换行产生了间隙，那是正常的，应该的。如果没有空格与间隙才是不正常的（**IE6/7** block水平元素）。
+display:inline-block布局的元素在chrome下会出现几像素的间隙，原因是因为我们在编辑器里写代码的时候，同级别的标签不写在同一行以保持代码的整齐可读性，即inline-block布局的元素在编辑器里不在同一行，即存在换行符，因此这就是著名的inline-block “换行符/空格间隙问题” 。如果inline-block元素间有空格或是换行产生了间隙，那是正常的，应该的。如果没有空格与间隙才是不正常的（**IE6/7** block水平元素）。
 
 **解决方法：**
 
@@ -3088,7 +3077,7 @@ img{vertical-align:middle;}
 img{vertical-align:top;}
 ```
 
-1. 移除标签间的空格
+4、 移除标签间的空格
 
 ```html
 <ul>
@@ -3135,11 +3124,11 @@ GPU处理过多的内容会导致内存问题；
 
 ### transform如何开启GPU硬件加速
 
-```
+```css
 .box{
     transform:translateZ(0);
     //或者
-    transfor:translate3d(0,0,0);
+    transform:translate3d(0,0,0);
 }
 ```
 
@@ -3147,7 +3136,7 @@ GPU处理过多的内容会导致内存问题；
 
 可能会导致浏览器频繁闪烁或者抖动，解决方案：
 
-```
+```css
 .box{
     backface-visibility: hidden;
     perspective: 1000;
@@ -3167,10 +3156,8 @@ sticky(2017年浏览器开始支持，粘性定位)
 ```
 
 absolute会使元素位置与文档流无关，不占据空间，absolute 定位的元素和其他元素重叠
-
 relative相对定位时，无论元素是否移动，仍然占据原来的空间
-
-sticky是2017年浏览器才开始支持，会产生动态效果，类似relative和fixed的结合，一个实例是"[动态固定](http://www.ruanyifeng.com/blog/2019/11/css-position.html)"，生效前提是必须搭配`top,left,bottom,right`一起使用，不能省略，否则等同于`relative`定位，不产生"动态固定"的效果
+sticky是2017年浏览器才开始支持，会产生动态效果，类似relative和fixed的结合，一个实例是"[动态固定](http://www.ruanyifeng.com/blog/2019/11/css-position.html)"，生效前提是必须搭配 `top,left,bottom,right` 一起使用，不能省略，否则等同于`relative`定位，不产生"动态固定"的效果
 
 **以下情况粘性布局会失效**
 
@@ -3179,21 +3166,20 @@ sticky是2017年浏览器才开始支持，会产生动态效果，类似relativ
 
 ## 对css sprits的理解，好处是什么
 
-css sprits又名雪碧图，也叫css精灵，开发人员会将很多小图标合并在一起之后的图片成为雪碧图，使用时通过background-image、background-position和background-size属性，将对应的小图标添加元素中
+css sprits又名雪碧图，也叫css精灵，开发人员会将很多小图标合并在一起，之后的图片成为雪碧图，使用时通过background-image、background-position和background-size属性，将对应的小图标添加元素中
 
 优点是：
-
 - 减少加载多张图片的HTTP请求数
 - 可以提前加载资源
 
 缺点是：
-
 - 维护成本较高，需要改动这张合并的图片
 - 加载优势在http2之后不复存在，http2采用多路复用，多张图片也可以重复使用一个连接
 
 ## animation 动画
 
 `animation：动画名称 + 动画时间 + 速度曲线 + 是否延迟 + 动画次数 + 是否逆向播放`
+
 ```css
 // linear 线性的  infinite 无穷的   alternate 逆向的
 animation: mymove 2s linear infinite alternate;   
