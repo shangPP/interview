@@ -365,7 +365,7 @@ Proxy 可以理解成，在目标对象之前架设一层“拦截”，外界�
 
 **扩展：**
 
-使用proxy实现，双向数据绑定，相比2.0的Object.defineProperty ()优势：
+使用proxy实现双向数据绑定，相比2.0的Object.defineProperty ()优势：
 
 1. 可以劫持整个对象，并返回一个新对象
 2. 有13种劫持操作
@@ -382,88 +382,49 @@ Vue生命周期经历哪些阶段：
 生命周期经历的阶段和钩子函数:
 
 1. 实例化vue(组件)对象：new Vue()
-
 2. 初始化事件和生命周期 init events 和 init cycle
-
 3. beforeCreate函数：
-
    在实例初始化之后，数据观测 (data observer) 和 event/watcher 事件配置之前被调用。
-
    即此时vue（组件）对象被创建了，但是vue对象的属性还没有绑定，如data属性，computed属性还没有绑定，即没有值。
-
    此时还没有数据和真实DOM。
-
    即：属性还没有赋值，也没有动态创建template属性对应的HTML元素（二阶段的createUI函数还没有执行）
-
 4. 挂载数据（属性赋值）
-
    包括 属性和computed的运算
-
 5. Created函数：
-
    vue对象的属性有值了，但是DOM还没有生成，$el属性还不存在。
-
    此时有数据了，但是还没有真实的DOM
-
    即：data，computed都执行了。属性已经赋值，但没有动态创建template属性对应的HTML元素，所以，此时如果更改数据不会触发updated函数
-
    如果：数据的初始值就来自于后端，可以发送ajax，或者fetch请求获取数据，但是，此时不会触发updated函数检查
-
 6.1 检查是否有el属性
-检查vue配置，即new Vue{}里面的el项是否存在，有就继续检查template项。没有则等到手动绑定调用 vm.mount()完成了全局变量el的绑定。
-
+	检查vue配置，即new Vue{}里面的el项是否存在，有就继续检查template项。没有则等到手动绑定调用 vm.mount()完成了全局变量el的绑定。
 6.2 检查是否有template属性
-
-检查配置中的template项，如果没有template进行填充被绑定区域，则被绑定区域的el对outerHTML（即 整个#app DOM对象，包括属性和标签）都作为被填充对象替换掉填充区域。即： 如果vue对象中有 template属性，那么，template后面的HTML会替换$el对应的内容。如果有render属 性，那么render就会替换template。 即：优先关系时： render > template > el
-
-1. beforeMount函数：
-
-   模板编译(template)、数据挂载(把数据显示在模板里)之前执行的钩子函数，
+	检查配置中的template项，如果没有template进行填充被绑定区域，则被绑定区域的el对outerHTML（即 整个#app DOM对象，包括属性和标签）都作为被填充对象替换掉填充区域。即： 如果vue对象中有 template属性，那么，template后面的HTML会替换$el对应的内容。如果有render属 性，那么render就会替换template。 即：优先关系时： render > template > el
+7. beforeMount函数：
+   模板编译(template)、数据挂载（把数据显示在模板里）之前执行的钩子函数，
    此时 this.$el有值，但是数据还没有挂载到页面上。即此时页面中的{{}}里的变量还没有被数据替换
    模板编译：用vue对象的数据（属性）替换模板中的内容
-
-2. Mounted函数：
-
+8. Mounted函数：
    模板编译完成，数据挂载完毕
    即：此时已经把数据挂载到了页面上，所以，页面上能够看到正确的数据了。
    一般来说，我们在此处发送异步请求（ajax，fetch，axios等），获取服务器上的数据，显示在DOM里。
-
-3. beforeUpdate函数：
-
+9. beforeUpdate函数：
    组件更新之前执行的函数，只有数据更新后，才能调用（触发）beforeUpdate，注意：此数据一定是在模板上出现的数据，否则，不会也没有必要触发组件更新（因为数据不出现在模板里，就没有必要再次渲染）
-
    数据更新了，但是，vue（组件）对象对应的dom中的内部（innerHTML）没有变，所以叫作组件更新前
-
-4. updated函数：
-
-   组件更新之后执行的函数
-
-   vue（组件）对象对应的dom中的内部（innerHTML）改变了，所以，叫作组件更新之后
-
-5. activated函数：keep-alive组件激活时调用
-
-6. deactivated函数：keep-alive组件停用时调用
-
-7. beforeDestroy：vue（组件）对象销毁之前
-
-8. destroyed：vue组件销毁后
-
-keep-alive
-
-<keep-alive></keep-alive>包裹动态组件时，会缓存不活动的组件实例，主要用于保留组件状态或避免重新渲染。
-
-**解析：** 比如有一个列表和一个详情，那么用户就会经常执行打开详情=>返回列表=>打开详情…这样的话列表和详情都是一个频率很高的页面，那么就可以对列表组件使用<keep-alive></keep-alive>进行缓存，这样用户每次返回列表的时候，都能从缓存中快速渲染，而不是重新渲染
+10. updated函数：
+	组件更新之后执行的函数
+	vue（组件）对象对应的dom中的内部（innerHTML）改变了，所以，叫作组件更新之后
+11. activated函数：keep-alive组件激活时调用
+12. deactivated函数：keep-alive组件停用时调用
+13. beforeDestroy：vue（组件）对象销毁之前
+14. destroyed：vue组件销毁后
 
 ## vue生命周期中异步加载在mounted还是created里实现
 
 最常用的是在 created 钩子函数中调用异步请求
-
 **解析：**
-
 一般来说，可以在，created，mounted中都可以发送数据请求，但是，大部分时候，会在created发送请求。
-Created的使用场景：如果页面首次渲染的就是来自后端数据。因为，此时data已经挂载到vue实例了。
-在 created（如果希望首次选的数据来自于后端，就在此处发请求）（只发了异步请求，渲染是在后端响应之后才进行的）、beforeMount、mounted（在mounted中发请求会进行二次渲染） 这三个钩子函数中进行调用。
-因为在这三个钩子函数中，data 已经创建，可以将服务端端返回的数据进行赋值。但是**最常用的是在 created 钩子函数中调用异步请求**，因为在 created 钩子函数中调用异步请求有两个优点：
+Created的使用场景：页面首次渲染的就是来自后端数据。因为，此时data已经挂载到vue实例了。
+在 created（如果希望首次渲染的数据来自于后端，就在此处发请求）（只发了异步请求，渲染是在后端响应之后才进行的）、beforeMount、mounted（在mounted中发请求会进行二次渲染） 这三个钩子函数中发送请求时，data 已经创建，可以将服务端端返回的数据进行赋值。但是**最常用的是在 created 钩子函数中调用异步请求**，因为在 created 钩子函数中调用异步请求有两个优点：
 第一点：能更快获取到服务端数据，减少页面 loading 时间；
 第二点：放在 created 中有助于一致性，因为ssr 不支持 beforeMount 、mounted 钩子函数。
 
@@ -472,14 +433,15 @@ Created的使用场景：如果页面首次渲染的就是来自后端数据。�
 **keep-alive**：keep-alive可以实现组件缓存，是Vue.js的一个内置组件。
 
 作用：
-
 1. 它能够把不活动的组件实例保存在内存中，而不是直接将其销毁
 2. 它是一个抽象组件，不会被渲染到真实DOM中，也不会出现在父组件链中
 
 使用方式：
 1. 常用的两个属性include/exclude，允许组件有条件的进行缓存。
 2. 两个生命周期activated/deactivated，用来得知当前组件是否处于活跃状态。
-3. keep-alive的中还运用了LRU(Least Recently Used)算法。
+3. keep-alive中还运用了LRU(Least Recently Used)算法。
+使用场景：
+比如有一个列表和一个详情，那么用户就会经常执行打开详情=>返回列表=>打开详情…这样的话列表和详情都是一个频率很高的页面，那么就可以对列表组件使用<keep-alive></keep-alive>进行缓存，这样用户每次返回列表的时候，都能从缓存中快速渲染，而不是重新渲染
 
 原理：Vue 的缓存机制并不是直接存储 DOM 结构，而是将 DOM 节点抽象成了一个个 VNode节点，所以，keep-alive的缓存也是基于VNode节点的而不是直接存储DOM结构。
 
@@ -491,7 +453,7 @@ Vuex是什么？
 
 Vuex是专门为Vuejs应用程序设计的**状态管理工具**。它采用集中式存储管理应用的所有组件的状态，并以相应的规则保证状态以一种可预测的方式发生变化
 
-具体工作：vuex是一种状态管理机制，将全局组件的共享状态抽取出来为一个store，以一个单例模式存在，应用任何一个组件中都可以使用，vuex更改state的唯一途径是通过mutation，mutation需要commit触发, action实际触发是mutation，其中mutation处理同步任务，action处理异步任务。
+具体工作：vuex是一种状态管理机制，将全局组件的共享状态抽取出来为一个store，以一个单例模式存在，在应用的任何一个组件中都可以使用，vuex更改state的唯一途径是通过mutation，mutation需要commit触发, action实际触发是mutation，其中mutation处理同步任务，action处理异步任务。
 
 Vuex每个属性是干嘛的？
 
@@ -501,16 +463,13 @@ Vuex的属性包含以下6个：
 
 1）state
 state是存储的单一状态，是存储的基本数据。
-
 2）Getters
 getters是store的计算属性，对state的加工，是派生出来的数据。就像computed计算属性一样，getter返回的值会根据它的依赖被缓存起来，且只有当它的依赖值发生改变才会被重新计算。
-
 3）Mutations
 mutations提交更改数据，使用store.commit方法更改state存储的状态。（mutations同步函数）
-
+[[#mutation和action有什么区别]]
 4）Actions
 actions像一个装饰器，提交mutation，而不是直接变更状态。（actions可以包含任何异步操作）
-
 5）Module
 Module是store分割的模块，每个模块拥有自己的state、getters、mutations、actions。
 
@@ -540,7 +499,6 @@ store.state.b // -> moduleB 的状态
 ```
 
 6）辅助函数
-
 Vuex提供了mapState、MapGetters、MapActions、mapMutations等辅助函数给开发在vm中处理store。
 
 Vuex的使用方法？
@@ -566,7 +524,7 @@ new Vue({ // 3.注入store, 挂载vue实例
 
 ## mutation和action有什么区别
 
-**mutation**：更改 Vuex 的 store 中的状态的唯一方法是提交 mutation。Vuex 中的 mutation 非常类似于： 每个 mutation 都有一个字符串的 事件类型 (type) 和 一个 回调函数 (handler)。这个回调函数就是我们实际进行状态更改的地方，并且它会接受 state 作为第一个参数
+**mutation**：更改 Vuex 的 store 中的状态的唯一方法是提交 mutation。Vuex 中的 mutation 非常类似于： 每个 mutation 都有一个字符串的事件类型 (type) 和一个回调函数 (handler)。这个回调函数就是我们实际进行状态更改的地方，并且它会接受 state 作为第一个参数
 
 ```js
 const store = new Vuex.Store({
@@ -589,7 +547,6 @@ store.commit('increment')
 ```
 
 **Action:** Action 类似于 mutation，不同在于：
-
 1. Action 提交的是 mutation，而不是直接变更状态。
 2. Action 可以包含任意异步操作。
    让我们来注册一个简单的 action：
@@ -613,7 +570,6 @@ const store = new Vuex.Store({
 ```
 
 **扩展：** 事实上在 vuex 里面 actions 只是一个架构性的概念，并不是必须的，说到底只是一个函数，你在里面想干嘛都可以，只要最后触发 mutation 就行。异步状态怎么处理那是用户自己的事情。
-
 vuex 真正限制你的只有 mutation 必须是同步的这一点（在 redux 里面就好像 reducer 必须同步返回下一个状态一样）。同步的意义在于这样每一个 mutation 执行完成后都可以对应到一个新的状态（和 reducer 一样），这样 devtools 就可以打个 snapshot 存下来，然后就可以随便 time-travel 了。如果你开着 devtool 调用一个异步的 action，你可以清楚地看到它所调用的 mutation 是何时被记录下来的，并且可以立刻查看它们对应的状态。
 
 ## 修改ElementUI样式的几种方式
@@ -621,7 +577,6 @@ vuex 真正限制你的只有 mutation 必须是同步的这一点（在 redux �
 修改ElementUI 样式的方式有四种：
 
 1. 新建全局样式表
-
    新建 global.css 文件，并在 main.js 中引入。 global.css 文件一般都放在 src->assets 静态资源文件夹下的 style 文件夹下，在 main.js 的引用写法如下：
 
    ```js
@@ -629,13 +584,9 @@ vuex 真正限制你的只有 mutation 必须是同步的这一点（在 redux �
    ```
 
    在 global.css 文件中写的样式，无论在哪一个 vue 单页面都会覆盖 ElementUI 默认的样式。
-
-2. 在当前-vue-单页面中添加一个新的style标签
-
+2. 在当前 vue 单页面中添加一个新的style标签
    在当前的vue单页面的style标签后，添加一对新的style标签，新的style标签中不要添加scoped属性。在有写scoped的style标签中书写的样式不会覆盖 ElementUI 默认的样式。
-
 3. 使用/deep/深度修改标签样式
-
    找到需要修改的 ElementUI 标签的类名，然后在类名前加上/deep/，可以强制修改默认样式。这种方式可以直接用到有scoped属性的 style 标签中。
 
    ```css
@@ -645,8 +596,7 @@ vuex 真正限制你的只有 mutation 必须是同步的这一点（在 redux �
    }
    ```
 
-4. 通过内联样式 或者 绑定类样式覆盖默认样式
-
+4. 通过内联样式或者绑定类样式覆盖默认样式
    通过内联样式 style ，绑定类样式的方式，可以在**某些标签**中可以直接覆盖默认样式，不是很通用。具体实例如下：
 
 ```html
@@ -666,9 +616,7 @@ vuex 真正限制你的只有 mutation 必须是同步的这一点（在 redux �
        }
    </script>
 ```
-
 通过绑定修改样式方式修改：
-
 ```html
    <el-button :class="[selfbutton]">默认按钮</el-button>
    <script>
@@ -693,56 +641,50 @@ vuex 真正限制你的只有 mutation 必须是同步的这一点（在 redux �
 **扩展：**
 
 第一种全局引入css文件的方式，适合于对elementUI整体的修改，比如整体配色的修改；
-第二种添加一个style标签的形式，也能够实现修改默认样式的效果，但实际上因为是修改了全局的样式，因此 在不同的vue组件中修改同一个样式有可能会有冲突。
-第三种方式通过 /deep/ 的方式可以很方便的在vue组件中修改默认样式，也不会于其他页面有冲突。
+第二种添加一个style标签的形式，也能够实现修改默认样式的效果，但实际上因为是修改了全局的样式，因此在不同的vue组件中修改同一个样式有可能会有冲突。
+第三种方式通过 /deep/ 的方式可以很方便的在vue组件中修改默认样式，也不会与其他页面有冲突。
 第四种方式局限性比较大，可以使用，但不推荐使用。
 
 ## 导航守卫
 
 导航守卫主要用来**通过跳转或取消的方式守卫导航**。
-
 简单的说，导航守卫就是路由跳转过程中的一些钩子函数。路由跳转是一个大的过程，这个大的过程分为跳转前中后等等细小的过程，在每一个过程中都有一函数，这个函数能让你操作一些其他的事儿的时机，这就是导航守卫。
 
-**解析：**
+### 1. 全局前置守卫
 
-路由守卫的具体方法：
-
-1. 全局前置守卫
+**触发时机：** 在路由跳转前触发
+**用途：** 常用于权限验证、登录状态检查
+[[#路由守卫进行判断登录]]
 
    你可以使用 router.beforeEach 注册一个全局前置守卫：
 
-   ```js
-   const router = new VueRouter({ ... })
-   router.beforeEach((to, from, next) => {
-     // ...
-   })
-   ```
+```js
+const router = new VueRouter({ ... })
+router.beforeEach((to, from, next) => {
+ // ...
+})
+```
 
    当一个导航开始时，全局前置守卫按照注册顺序调用。守卫是异步链式调用的，导航在最后的一层当中。
 
-   ```js
-   new Promise((resolve, reject) => {
-       resolve('第一个全局前置守卫')
-   }.then(() => {
-       return '第二个全局前置守卫'
-   }.then(() => {
-       ...
-   }.then(() => {
-       console.log('导航终于开始了') // 导航在最后一层中
-   })
-   ```
+```js
+new Promise((resolve, reject) => {
+   resolve('第一个全局前置守卫')
+}.then(() => {
+   return '第二个全局前置守卫'
+}.then(() => {
+   ...
+}.then(() => {
+   console.log('导航终于开始了') // 导航在最后一层中
+})
+```
 
 每个守卫方法接收三个参数（往后的守卫都大同小异）：
-
-\1. to: Route: 即将要进入的目标 路由对象
-
-\2. from: Route: 当前导航正要离开的路由
-
-\3. next: Function: 一定要调用该方法将控制权交给下一个守卫，执行效果依赖 next 方法的参数。
-
+1. to: Route: 即将要进入的目标路由对象
+2. from: Route: 当前导航正要离开的路由
+3. next: Function: 一定要调用该方法将控制权交给下一个守卫，执行效果依赖 next 方法的参数。
 next(): 进入下一个守卫。如果全部守卫执行完了。则导航的状态就是 confirmed (确认的)。
-
-next(false): 中断当前的导航（把小明腿打断了）。如果浏览器的 URL 改变了 (可能是用户手动或者浏览器 后退按钮)，那么 URL 地址会重置到 from 路由对应的地址。
+next(false): 中断当前的导航（把小明腿打断了）。如果浏览器的 URL 改变了 (可能是用户手动或者浏览器后退按钮)，那么 URL 地址会重置到 from 路由对应的地址。
 
 next('/') 或者 next({ path: '/' }): 跳转到一个不同的地址。当前的导航被中断，然后进行一个新的导航（小明被打断腿并且送回家了）。你可以向 next 传递任意位置对象，且允许设置诸如 replace: true、name: 'home' 之类的选项以及任何用在 router-link 的 to prop 或 router.push 中的选项。
 
@@ -750,22 +692,32 @@ next(error): (2.4.0+) 如果传入 next 的参数是一个 Error 实例，则导
 
 onError() 注册过的回调。
 
-注意：永远不要使用两次next，这会产生一些误会。
+**注意：** 永远不要使用两次next，这会产生一些误会。
 
-1. 全局解析守卫
-   这和 router.beforeEach 类似，但他总是被放在最后一个执行。
+### 2. 全局解析守卫
 
-2. 全局后置钩子
+**触发时机：** 在导航被确认之前，组件内守卫和异步路由组件被解析之后触发
+**用途：** 适用于需要在导航确认前执行的操作
+router.beforeResolve 这和 router.beforeEach 类似，但他总是被放在最后一个执行。
+
+### 3. 全局后置钩子
+
+**触发时机：** 在导航完成后触发
+**用途：** 适用于日志记录、页面分析等
    导航已经确认了的，小明已经到了外婆家了，你打断他的腿他也是在外婆家了。
 
-   ```js
-   router.afterEach((to, from) => {
-       // 你并不能调用next
-     // ...
-   })
-   ```
+```js
+router.afterEach((to, from) => {
+   // 你并不能调用next
+ // ...
+})
+```
 
-3. 路由独享的守卫
+### 4. 路由独享的守卫
+
+**触发时机：** 在进入特定路由前触发
+**用途：** 适用于特定路由的权限控制
+
    在路由内写的守卫
 
    ```js
@@ -782,31 +734,42 @@ onError() 注册过的回调。
    })
    ```
 
-4. 组件内的守卫
+### 5. 组件内的守卫
 
-   5.1 beforeRouteEnter
-   5.2 beforeRouteUpdate (2.2 新增)
-   5.3 beforeRouteLeave
+#### 5.1 beforeRouteEnter
 
-   ```js
-   const Foo = {
-     template: `...`,
-     beforeRouteEnter (to, from, next) {
-       // 路由被 confirm 前调用
-       // 组件还未渲染出来，不能获取组件实例 `this`
-     },
-     beforeRouteUpdate (to, from, next) {
-       // 在当前路由改变，但是该组件被复用时调用
-       // 举例来说，对于一个带有动态参数的路径 /foo/:id，在 /foo/1 和 /foo/2 之间跳转的时候，
-       // 由于会渲染同样的 Foo 组件，因此组件实例会被复用。而这个钩子就会在这个情况下被调用。
-       // 可以访问组件实例 `this`，一般用来数据获取。
-     },
-     beforeRouteLeave (to, from, next) {
-       // 导航离开该组件的对应路由时调用
-       // 可以访问组件实例 `this`
-     }
-   }
-   ```
+**触发时机：** 在组件实例被创建前调用
+**用途：** 无法访问 `this`，但可以通过 `next(vm => {})` 访问组件实例
+
+#### 5.2 beforeRouteUpdate (2.2 新增)
+
+**触发时机：** 在当前路由改变，但组件复用时调用
+**用途：** 适用于动态路由参数变化时更新数据
+
+#### 5.3 beforeRouteLeave
+
+**触发时机：** 在离开当前路由前调用
+**用途：** 常用于防止用户未保存数据就离开页面
+
+```js
+const Foo = {
+ template: `...`,
+ beforeRouteEnter (to, from, next) {
+   // 路由被 confirm 前调用
+   // 组件还未渲染出来，不能获取组件实例 `this`
+ },
+ beforeRouteUpdate (to, from, next) {
+   // 在当前路由改变，但是该组件被复用时调用
+   // 举例来说，对于一个带有动态参数的路径 /foo/:id，在 /foo/1 和 /foo/2 之间跳转的时候，
+   // 由于会渲染同样的 Foo 组件，因此组件实例会被复用。而这个钩子就会在这个情况下被调用。
+   // 可以访问组件实例 `this`，一般用来数据获取。
+ },
+ beforeRouteLeave (to, from, next) {
+   // 导航离开该组件的对应路由时调用
+   // 可以访问组件实例 `this`
+ }
+}
+```
 
 **扩展：**
 
@@ -833,175 +796,132 @@ onError() 注册过的回调。
 
    我们可以在入口文件man.js里面进行配置，使用router.beforeEach方法，不懂得可以打印to，from的参数就ok，requireAuth可以随意换名的，只要man.js里面跟配置路由的routes里面的字段保持一致：
 
-   ```js
-   import router from './router'
-   router.beforeEach((to, from, next) => {
-     if (to.matched.some(record => record.meta.requireAuth)){  // 判断该路由是否需要登录权限
-       if(!sessionStorage.getItem('token') && !localStorage.getItem('token')){
-         next({
-           path: '/login',
-           query: {redirect: to.fullPath}  // 将跳转的路由path作为参数，登录成功后跳转到该路由
-         })
-       }else{
-            next();
-       }
-     }else {
-       next();
-     }
-   });
-   new Vue({
-     el: '#app',
-     router,
-     render: h => h(App)
-   })
-   ```
-
-   ```js
-   export default new Router({
-       routes: [
-           {
-               path: '/',
-               name: 'home',
-               redirect: '/home'
-           },
-           {
-               path: '/home',
-               component: Home,
-               meta: {
-                 title: '',
-                 requireAuth: true,  // 添加该字段，表示进入这个路由是需要登录的
-              }
-           },
-           {
-               path:'/login',
-               name:'login',
-               component:Login
-           },
-           {
-               path:'/register',
-               name:'register',
-               component:Register
-           }
-       ]
-   })
-   ```
-
-2. 全局后置守卫
-
-   ```js
-   router.afterEach((to, from) => {
-     // ...
-   })
-   ```
-
-3. 单独路由独享守卫（与全局一致，可单独对某个路由进行配置）
-
-   ```js
-   const router = new VueRouter({
-     routes: [
-       {
-         path: '/foo',
-         component: Foo,
-         beforeEnter: (to, from, next) => {
-           // ...
-         }
-       }
-     ]
-   })
-   ```
-
-4. 组件内部路由守卫（可写在与生命周期同级位置）
-
-   ```js
-   beforeRouteEnter (to, from, next) {
-       // 在渲染该组件的对应路由被 confirm 前调用
-       // 不！能！获取组件实例 `this`
-       // 因为当守卫执行前，组件实例还没被创建
-   },
-   beforeRouteUpdate (to, from, next) {
-       // 在当前路由改变，但是该组件被复用时调用
-       // 举例来说，对于一个带有动态参数的路径 /foo/:id，在 /foo/1 和 /foo/2 之间跳转的时候，
-       // 由于会渲染同样的 Foo 组件，因此组件实例会被复用。而这个钩子就会在这个情况下被调用。
-       // 可以访问组件实例 `this`
-   },
-   beforeRouteLeave (to, from, next) {
-       // 导航离开该组件的对应路由时调用
-       // 可以访问组件实例 `this`
+```js
+import router from './router'
+router.beforeEach((to, from, next) => {
+ if (to.matched.some(record => record.meta.requireAuth)){  // 判断该路由是否需要登录权限
+   if(!sessionStorage.getItem('token') && !localStorage.getItem('token')){
+	 next({
+	   path: '/login',
+	   query: {redirect: to.fullPath}  // 将跳转的路由path作为参数，登录成功后跳转到该路由
+	 })
+   }else{
+		next();
    }
-   ```
+ }else {
+   next();
+ }
+});
+new Vue({
+ el: '#app',
+ router,
+ render: h => h(App)
+})
+```
+
+```js
+export default new Router({
+   routes: [
+	   {
+		   path: '/',
+		   name: 'home',
+		   redirect: '/home'
+	   },
+	   {
+		   path: '/home',
+		   component: Home,
+		   meta: {
+			 title: '',
+			 requireAuth: true,  // 添加该字段，表示进入这个路由是需要登录的
+		  }
+	   },
+	   {
+		   path:'/login',
+		   name:'login',
+		   component:Login
+	   },
+	   {
+		   path:'/register',
+		   name:'register',
+		   component:Register
+	   }
+   ]
+})
+```
 
 ## vue-router实现懒加载
 
 懒加载：当打包构建应用时，JavaScript 包会变得非常大，影响页面加载。如果我们能把不同路由对应的组件分割成不同的代码块，然后当路由被访问的时候才加载对应组件，这样就更加高效了。
 
-实现：结合 Vue 的[异步组件](https://cn.vuejs.org/v2/guide/components-dynamic-async.html#异步组件)和 Webpack 的[代码分割功能](https://doc.webpack-china.org/guides/code-splitting-async/#require-ensure-/)，可以实现路由组件的懒加载
-
+实现：结合 Vue 的异步组件和 Webpack 的代码分割功能，可以实现路由组件的懒加载
 1. 首先，可以将异步组件定义为返回一个 Promise 的工厂函数 (该函数返回的 Promise 应该 resolve 组件本身)：
 
-   ```js
-   const Foo = () => Promise.resolve({ /* 组件定义对象 */ })
-   ```
+```js
+const Foo = () => Promise.resolve({ /* 组件定义对象 */ })
+```
 
 2. 在 Webpack 2 中，我们可以使用[动态 import](https://github.com/tc39/proposal-dynamic-import)语法来定义代码分块点 (split point)：
 
-   ```js
-   import('./Foo.vue') // 返回 Promise
-   ```
+```js
+import('./Foo.vue') // 返回 Promise
+```
+   
    结合这两者，这就是如何定义一个能够被 Webpack 自动代码分割的异步组件。
-   ```js
-   const Foo = () => import('./Foo.vue')
-   ```
+   
+```js
+const Foo = () => import('./Foo.vue')
+```
 
    在路由配置中什么都不需要改变，只需要像往常一样使用Foo：
 
-   ```js
-   const router = new VueRouter({
-     routes: [
-       { path: '/foo', component: Foo }
-     ]
-   })
-   ```
+```js
+const router = new VueRouter({
+ routes: [
+   { path: '/foo', component: Foo }
+ ]
+})
+```
 
 常用的懒加载方式有三种：即使用vue异步组件 和 ES6中的import，以及webpack的require.ensure()
 
 - vue异步组件
 
-  ```js
-  // 路由配置，使用vue异步组件
-  {
-      path: '/home',
-      name: 'home',
-      component: resolve => require(['@/components/home'],resolve)
-  }
-  ```
+```js
+// 路由配置，使用vue异步组件
+{
+  path: '/home',
+  name: 'home',
+  component: resolve => require(['@/components/home'],resolve)
+}
+```
 
 - ES6中的import
 
-  ```js
-  // 指定了相同的webpackChunkName，合并打包成一个js文件
-  // 如果不指定，则分开打包
-  const Home = () => import(/*webpackChunkName:'ImportFuncDemo'*/ '@/components/home')
-  const Index = () => import(/*webpackChunkName:'ImportFuncDemo'*/ '@/components/index')
-  ```
+```js
+// 指定了相同的webpackChunkName，合并打包成一个js文件
+// 如果不指定，则分开打包
+const Home = () => import(/*webpackChunkName:'ImportFuncDemo'*/ '@/components/home')
+const Index = () => import(/*webpackChunkName:'ImportFuncDemo'*/ '@/components/index')
+```
 
 - webpack推出的require.ensure()
 
-  ```js
-  {
-      path: '/home',
-      name: 'home',
-      component: r => require.ensure([], () => r(require('@/components/home')), 'demo')
-  }
-  ```
+```js
+{
+  path: '/home',
+  name: 'home',
+  component: r => require.ensure([], () => r(require('@/components/home')), 'demo')
+}
+```
 
 ## js是如何监听historyRouter的变化的
 
 通过浏览器的地址栏来改变切换页面，前端实现主要有两种方式：
 
-1. 通过hash改变，利用window.onhashchange 监听。
+1. **通过hash改变：** 利用window.onhashchange 监听。
 
 2. **HistoryRouter：** 通过history的改变，进行js操作加载页面，然而history并不像hash那样简单，因为history的改变，除了浏览器的几个前进后退（使用 history.back(), history.forward()和 history.go() 方法来完成在用户历史记录中向后和向前的跳转。）等操作会主动触发popstate 事件，pushState，replaceState 并不会触发popstate事件，要解决history监听的问题，方法是：
-   首先完成一个订阅-发布模式，然后重写history.pushState, history.replaceState，并添加消息通知，这样一来只要history的无法实现监听函数就被我们加上了事件通知，只不过这里用的不是浏览器原生事件，而是通过我们创建的event-bus 来实现通知，然后触发事件订阅函数的执行。
+   首先完成一个订阅-发布模式，然后重写history.pushState, history.replaceState，并添加消息通知，这样一来history无法实现监听的函数就被我们加上了事件通知，只不过这里用的不是浏览器原生事件，而是通过我们创建的event-bus 来实现通知，然后触发事件订阅函数的执行。
 
 具体操作如下：
 
@@ -1020,7 +940,7 @@ class Dep {                  // 订阅池
         this.subs.forEach((e, i) => {
             if(typeof e.update === 'function'){
                 try {
-                   e.update.apply(e)  //触发订阅者更新函数
+	                e.update.apply(e)  //触发订阅者更新函数
                 } catch(err){
                     console.warr(err)
                 }
@@ -1076,18 +996,18 @@ history.replaceState =  addHistoryMethod('replaceState');
 
 **vue-router**是Vue官方的路由管理器。它和 Vue.js 的核心深度集成，让构建单页面应用变得易如反掌。vue-router默认 hash 模式，还有一种是history模式。
 
-原理：
+### hash路由
 
-1. hash路由：hash模式的工作原理是hashchange事件，可以在window监听hash的变化。我们在url后面随便添加一个#xx触发这个事件。vue-router默认的是hash模式—使用URL的hash来模拟一个完整的URL,于是当URL改变的时候,页面不会重新加载,也就是单页应用了，当#后面的hash发生变化，不会导致浏览器向服务器发出请求，浏览器不发出请求就不会刷新页面，并且会触发hasChange这个事件，通过监听hash值的变化来实现更新页面部分内容的操作
+hash模式的工作原理是hashchange事件，可以在window监听hash的变化。我们在url后面随便添加一个#xx触发这个事件。vue-router默认的是hash模式——使用URL的hash来模拟一个完整的URL，于是当URL改变的时候，页面不会重新加载，也就是单页应用了，当#后面的hash发生变化，不会导致浏览器向服务器发出请求，浏览器不发出请求就不会刷新页面，并且会触发hashChange这个事件，通过监听hash值的变化来实现更新页面部分内容的操作
 
-   对于hash模式会创建hashHistory对象，在访问不同的路由的时候，会发生两件事:
-   HashHistory.push()将新的路由添加到浏览器访问的历史的栈顶，和HashHistory.replace()替换到当前栈顶的路由
+对于hash模式会创建hashHistory对象，在访问不同的路由的时候，会发生两件事:
+HashHistory.push()将新的路由添加到浏览器访问的历史的栈顶，和HashHistory.replace()替换到当前栈顶的路由
 
-2. history路由：
+### history路由
 
-   主要使用HTML5的pushState()和replaceState()这两个api结合window.popstate事件（监听浏览器前进后退）来实现的，pushState()可以改变url地址且不会发送请求，replaceState()可以读取历史记录栈，还可以对浏览器记录进行修改
+主要使用 HTML5 的 pushState() 和 replaceState() 这两个 api 结合 window.popstate 事件（监听浏览器前进后退）来实现的，pushState() 可以改变url地址且不会发送请求，replaceState()可以读取历史记录栈，还可以对浏览器记录进行修改
 
-区别：
+### 区别
 
 1. hash模式较丑，history模式较优雅
 2. pushState设置的新URL可以是与当前URL同源的任意URL；而hash只可修改#后面的部分，故只可设置与当前同文档的URL
@@ -1108,6 +1028,7 @@ history.replaceState =  addHistoryMethod('replaceState');
 	})
 	// history路由原理************************
 	// 利用html5的history的pushState方法结合window.popstate事件（监听浏览器前进后退）
+	// 手动路由跳转
 	function routerChange (pathname){
 		history.pushState(null,null,pathname)
 		div.innerHTML = location.pathname
