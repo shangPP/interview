@@ -1009,35 +1009,97 @@ HashHistory.push()将新的路由添加到浏览器访问的历史的栈顶，�
 
 ### 区别
 
-1. hash模式较丑，history模式较优雅
-2. pushState设置的新URL可以是与当前URL同源的任意URL；而hash只可修改#后面的部分，故只可设置与当前同文档的URL
-3. pushState设置的新URL可以与当前URL一模一样，这样也会把记录添加到栈中；而hash设置的新值必须与原来不一样才会触发记录添加到栈中
-4. pushState通过stateObject可以添加任意类型的数据到记录中；而hash只可添加短字符串
-5. pushState可额外设置title属性供后续使用
-6. hash兼容IE8以上，history兼容IE10以上
-7. history模式需要后端配合将所有访问都指向index.html，否则用户刷新页面，会导致404错误
+#### 1. URL 表现形式
 
-使用方法:
+- **Hash 路由**：
+    - URL 中带有 `#` 符号，例如：`http://example.com/#/home`。
+    - `#` 后面的内容称为 `hash`，不会发送到服务器，仅用于前端路由。
+    - 例如：`http://example.com/#/about`。
+- **History 路由**：
+    - URL 是标准的路径形式，例如：`http://example.com/home`。
+    - 完全模拟了传统的 URL 结构，看起来更美观。
+    - 例如：`http://example.com/about`。
+#### 2. 实现原理
 
-```html
-<script>
-	// hash路由原理***************************
-	// 监听hashchange方法
-	window.addEventListener('hashchange',()=>{
-		div.innerHTML = location.hash.slice(1)
-	})
-	// history路由原理************************
-	// 利用html5的history的pushState方法结合window.popstate事件（监听浏览器前进后退）
-	// 手动路由跳转
-	function routerChange (pathname){
-		history.pushState(null,null,pathname)
-		div.innerHTML = location.pathname
-	}
-	window.addEventListener('popstate',()=>{
-		div.innerHTML = location.pathname
-	})
-</script>
+- **Hash 路由**：
+    - 基于 `location.hash` 和 `hashchange` 事件。
+    - 当 `hash` 变化时，触发 `hashchange` 事件，前端根据 `hash` 值渲染对应的内容。
+    - 例如：
+```js
+window.addEventListener('hashchange', () => {
+	  const path = location.hash.slice(1); // 去掉 # 号
+	  renderContent(path);
+});
 ```
++ **History 路由**：
+	- 基于 HTML5 的 `history.pushState` 和 `popstate` 事件。
+	- 使用 `history.pushState` 修改 URL，同时不会刷新页面。
+	- 当用户点击浏览器的前进/后退按钮时，触发 `popstate` 事件，前端根据 `location.pathname` 渲染对应的内容。
+	- 例如：
+```js
+function navigate(path) {
+  history.pushState(null, null, path);
+  renderContent(path);
+}
+
+window.addEventListener('popstate', () => {
+  const path = location.pathname;
+  renderContent(path);
+});
+
+```
+
+#### 3. 对服务器配置的要求
+
+- **Hash 路由**：
+    - 不需要服务器额外配置。
+    - 因为 `#` 后面的内容不会发送到服务器，服务器始终返回同一个 HTML 文件，前端根据 `hash` 渲染不同内容。
+- **History 路由**：
+    - 需要服务器支持。
+    - 如果用户直接访问 `http://example.com/home`，服务器需要配置为返回同一个 HTML 文件（通常是 `index.html`），否则会返回 404 错误。
+    - 例如，在 Nginx 中配置：
+```nginx
+location / {
+  try_files $uri $uri/ /index.html;
+}
+```
+
+#### 4. 兼容性
+
+- **Hash 路由**：
+    - 兼容性非常好，支持所有浏览器，包括 IE8 及以下版本。
+    - 因为 `hashchange` 事件是早期浏览器的标准特性。
+- **History 路由**：
+    - 基于 HTML5 的 `history.pushState` 和 `popstate`，兼容性稍差。
+    - 不支持 IE9 及以下版本。
+
+#### 5. SEO 友好性
+
+- **Hash 路由**：
+    - 对 SEO 不友好。
+    - 因为 `#` 后面的内容不会被搜索引擎抓取。
+- **History 路由**：
+    - 对 SEO 更友好。
+    - 因为 URL 是标准的路径形式，搜索引擎可以正确抓取和索引。
+#### 6. 使用场景
+
+- **Hash 路由**：
+    - 适用于简单的单页应用（SPA），尤其是对兼容性要求较高的场景。
+    - 例如：企业内部系统、兼容旧浏览器的项目。
+- **History 路由**：
+    - 适用于现代化的单页应用（SPA），尤其是对 URL 美观性和 SEO 有要求的场景。
+    - 例如：面向公众的网站、需要 SEO 支持的项目。
+
+#### 7. 优缺点对比
+
+| 特性      | Hash 路由                           | History 路由                          |
+| ------- | --------------------------------- | ----------------------------------- |
+| URL 美观性 | 不美观（带 `#`）                        | 美观（标准路径）                            |
+| 实现原理    | 基于 `location.hash` 和 `hashchange` | 基于 `history.pushState` 和 `popstate` |
+| 服务器配置   | 不需要额外配置                           | 需要配置支持                              |
+| 兼容性     | 兼容所有浏览器                           | 不支持 IE9 及以下                         |
+| SEO 友好性 | 不友好                               | 友好                                  |
+| 使用场景    | 简单 SPA、兼容性要求高的项目                  | 现代化 SPA、需要 SEO 的项目                  |
 
 ## vue router原理，哪个模式不会请求服务器
 
@@ -1076,14 +1138,14 @@ v-show和v-if都是用来显示隐藏元素，v-if还有一个v-else配合使用
 **解析：**
 
 v-show
-v-show不管条件是真还是假，第一次渲染的时候都会编译出来，也就是标签都会添加到DOM中。之后切换的时候，通过display: none;样式来显示隐藏元素。可以说只是改变css的样式，几乎不会影响什么性能。
+v-show不管条件是真还是假，第一次渲染的时候都会编译出来，也就是标签都会添加到DOM中。之后切换的时候，通过display: none;样式来显示/隐藏元素。可以说只是改变css的样式，几乎不会影响什么性能。
 
 v-if
 在首次渲染的时候，如果条件为假，什么也不操作，页面当作没有这些元素。当条件为真的时候，开始局部编译，动态的向DOM元素里面添加元素。当条件从真变为假的时候，开始局部编译，卸载这些元素，也就是删除。
 
 ## vue列表为什么加key（v-for中的key）
 
-vue中列表循环需加:key="唯一标识" 唯一标识且最好是静态的，因为vue组件高度复用增加Key可以标识组件的唯一性，为了更好地区别各个组件 key的作用主要是为了高效的更新虚拟DOM
+vue中列表循环需加:key="唯一标识"，唯一标识且最好是静态的，因为vue组件高度复用，增加Key可以标识组件的唯一性，为了更好地区别各个组件 key的作用主要是为了高效的更新虚拟DOM
 
 **解析：**
 
@@ -1115,7 +1177,7 @@ vue和react的虚拟DOM的Diff算法大致相同，其核心是基于两个简�
 
 | **Vue**                            | **jQuery**             |
 | ---------------------------------- | ---------------------- |
-| 数据驱动视图(MVVM思想:数据视图完全分离；数据驱动、双向绑定；) | 直接操作DOM(获取、修改、赋值、事件绑定) |
+| 数据驱动视图(MVVM思想：数据视图完全分离；数据驱动、双向绑定；) | 直接操作DOM(获取、修改、赋值、事件绑定) |
 | 操作简单                               | 操作麻烦                   |
 | 模块化                                | x                      |
 | 实现单页面                              | x                      |
@@ -1132,50 +1194,21 @@ vue和react的虚拟DOM的Diff算法大致相同，其核心是基于两个简�
 
 - MVVM 框架：
   Vue 正是使用了这种 MVVM 的框架形式，并且通过声明式渲染和响应式数据绑定的方式来帮助我们完全避免了对 DOM 的操作。
-
 - 单页面应用程序
   Vue 配合生态圈中的 Vue-Router 就可以非常方便的开发复杂的单页应用
-
 - 轻量化与易学习
   Vue 的生产版本只有 30.90KB 的大小，几乎不会对我们的网页加载速度产生影响。同时因为 Vue 只专注于视图层，单独的 Vue 就像一个库一样，所以使我们的学习成本变得非常低
-
 - 渐进式与兼容性
   Vue 的核心库只关注视图层，不仅易于上手，还便于与第三方库或既有项目整合。Vue 只做界面，而把其他的一切都交给了它的周边生态（axios（Vue 官方推荐）、Lodash.js、Velocity.js 等）来做处理，这就要求 Vue 必须要对其他的框架拥有最大程度的兼容性
-
 - 视图组件化
   Vue 允许通过组件来去拼装一个页面，每个组件都是一个可复用的 Vue 实例，组件里面可以包含自己的数据，视图和代码逻辑。方便复用
-
 - 虚拟 DOM（Virtual DOM）
   Vue 之所以可以完全避免对 DOM 的操作，就是因为 Vue 采用了虚拟 DOM 的方式，不但避免了我们对 DOM 的复杂操作，并且大大的加快了我们应用的运行速度。
-
 - 社区支持
   得益于 Vue 的本土化身份（Vue 的作者为国人尤雨溪），再加上 Vue 本身的强大，所以涌现出了特别多的国内社区，这种情况在其他的框架身上是没有出现过的，这使得我们在学习或者使用 Vue 的时候，可以获得更多的帮助
-
 - 未来的 Vue 走向
   Vue 是由国人尤雨溪在 Google 工作的时候，为了方便自己的工作而开发出来的一个库，而在 Vue 被使用的过程中，突然发现越来越多的人喜欢上了它。所以尤雨溪就进入了一个边工作、边维护的状态，在这种情况下 Vue 依然迅速的发展。
-
   而现在尤雨溪已经正式辞去了 Google 的工作，开始专职维护 Vue，同时加入进来的还有几十位优秀的开发者，他们致力于把 Vue 打造为最受欢迎的前端框架。事实证明 Vue 确实在往越来越好的方向发展了（从 Angular、React、Vue 的对比图中可以看出 Vue 的势头）。所以我觉得完全不需要担心未来 Vue 的发展，至少在没有新的颠覆性创新出来之前，Vue 都会越做越好。
-
-## vue/angular区别
-
-1. 体积和性能
-   相较于vue，angular显得比较臃肿，比如一个包含了 Vuex + Vue Router 的 Vue 项目 (gzip 之后 30kB) ，而 angular-cli 生成的默认项目尺寸 (~65KB) 还是要小得多。
-
-   在性能上，AngularJS依赖对数据做脏检查，所以Watcher越多越慢。Vue.js使用基于依赖追踪的观察并且使用异步队列更新。所有的数据都是独立触发的。 对于庞大的应用来说，这个优化差异还是比较明显的
-
-2. Virtual DOM vs Incremental DOM
-   在底层渲染方面，vue 使用的虚拟dom，而angular 使用的是Incremental DOM，Incremental DOM的优势在于低内开销
-
-3. Vue 相比于 Angular 更加灵活，可以按照不同的需要去组织项目的应用代码。比如，甚至可以直接像引用jquery那样在HTML中引用vue，然后仅仅当成一个前端的模板引擎来用。
-
-4. es6支持
-   es6是新一代的javascript标准，对JavaScript进行了大量的改进，使用es6开发已是基本需求。虽然有部分十分老旧的浏览器不支持es6，但是可以利用现代开发工具将es6编译成es5。在对es6的支持上两者都做得很好，（TS本身就是es6的超集）
-
-5. 学习曲线
-   针对前端而言，angular的学习曲线相对较大，vue学习起来更容易一些。不过对java和c的使用者而言，angular的静态检查、依赖注入的特性，以及面向对象的编程风格，使得angular都要更亲切一些。
-
-6. 使用热度
-   在使用热度上，vue具有更大优势，主要原因是更受数量庞大的中国开发者欢迎。较低的上手难度，易懂的开发文档，以及国人主导开发的光环，都使得vue更为流行
 
 ## 既然 Vue 通过数据劫持可以精准探测数据在具体dom上的变化，为什么还需要虚拟 DOM diff 呢?
 
@@ -1185,7 +1218,7 @@ vue和react的虚拟DOM的Diff算法大致相同，其核心是基于两个简�
 
 **pull:** 其代表为React，我们可以回忆一下React是如何侦测到变化的，我们通常会用setStateAPI显式更新，然后React会进行一层层的Virtual Dom Diff操作找出差异，然后Patch到DOM上，React从一开始就不知道到底是哪发生了变化，只是知道「有变化了」，然后再进行比较暴力的Diff操作查找「哪发生变化了」，另外一个代表就是Angular的脏检查操作。
 
-**push:** Vue的响应式系统则是push的代表，当Vue程序初始化的时候就会对数据data进行依赖的收集，一但数据发生变化，响应式系统就会立刻得知。因此Vue是一开始就知道是「在哪发生变化了」，但是这又会产生一个问题，如果你熟悉Vue的响应式系统就知道，通常一个绑定一个数据就需要一个Watcher
+**push:** Vue的响应式系统则是push的代表，当Vue程序初始化的时候就会对数据data进行依赖的收集，一但数据发生变化，响应式系统就会立刻得知。因此Vue是一开始就知道是「在哪发生变化了」，但是这又会产生一个问题，如果你熟悉Vue的响应式系统就知道，通常绑定一个数据就需要一个Watcher
 
 一但我们的绑定细粒度过高就会产生大量的Watcher，这会带来内存以及依赖追踪的开销，而细粒度过低会无法精准侦测变化，因此Vue的设计是选择中等细粒度的方案，在组件级别进行push侦测的方式，也就是那套响应式系统，通常我们会第一时间侦测到发生变化的组件，然后在组件内部进行Virtual Dom Diff获取更加具体的差异，而Virtual Dom Diff则是pull操作，Vue是push+pull结合的方式进行变化侦测的。
 
@@ -1202,7 +1235,7 @@ vue和react的虚拟DOM的Diff算法大致相同，其核心是基于两个简�
 
 ## new Vue以后发生的事情
 
-1. new Vue会调用 Vue 原型链上的_init方法对 Vue 实例进行初始化；
+1. new Vue会调用 Vue 原型链上的 init 方法对 Vue 实例进行初始化；
 2. 首先是initLifecycle初始化生命周期，对 Vue 实例内部的一些属性（如 children、parent、isMounted）进行初始化；
 3. initEvents，初始化当前实例上的一些自定义事件（Vue.$on）；
 4. initRender，解析slots绑定在 Vue 实例上，绑定createElement方法在实例上；
@@ -1224,7 +1257,7 @@ vue和react的虚拟DOM的Diff算法大致相同，其核心是基于两个简�
 6. 在生产环境中删除掉不必要的console.log
 
 ```js
-  plugins: [
+plugins: [
     new webpack.optimize.UglifyJsPlugin({ //添加-删除console.log
       compress: {
         warnings: false,
@@ -1233,6 +1266,7 @@ vue和react的虚拟DOM的Diff算法大致相同，其核心是基于两个简�
       },
       sourceMap: true
     }),
+]
 ```
 
 1. 开启nginx的gzip ,在nginx.conf配置文件中配置
@@ -1277,7 +1311,7 @@ $refs
 在子组件上使用ref特性后，this.属性可以直接访问该子组件。可以代替事件emit 和on的作用。私用方式是通过ref特性为这个子组件赋予一个ID引用，再通过this.refs.testId获取指定元素。注意：refs只会在组件渲染完成之后生效，并且它们不是响应式的。这仅作为一个用于直接操作子组件的“逃生舱”——你应该避免在模板或计算属性中访问refs
 
 $parent
-$parent属性可以用来从一个子组件访问父组件的实例，可以替代将数据以 prop 的方式传入子组件的方式；当变更父级组件的数据的时候，容易造成调试和理解难度增加；
+$parent属性可以用来从一个子组件访问父组件的实例，可以替代将数据以 prop 的方式传入子组件；当变更父级组件的数据的时候，容易造成调试和理解难度增加；
 
 ## 路由跳转和location.href的区别
 
@@ -1332,6 +1366,8 @@ watch
 - 1.是观察的动作，
 - 2.应用：监听props，$emit或本组件的值执行异步操作
 - 3.无缓存性，页面重新渲染时值不变化也会执行
+- `deep: true` 表示深度监听，即使监听的对象的嵌套属性发生变化，也会触发回调。
+- 默认情况下，`watch` 只有在监听的值发生变化时才会触发回调。如果希望在组件创建时立即触发回调，可以使用 `immediate: true`。
 
 与computed的区别是，watch更加适用于监听某一个值的变化，并做对应操作，比如请求后台接口等。而computed适用于计算已有的值并返回结果。 监听简单数据类型：
 
