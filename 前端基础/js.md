@@ -7195,4 +7195,119 @@ Function.prototype.bind = function (context) {
 }
 ```
 
+## 捕获和冒泡
 
+在 JavaScript 中，事件传播分为三个阶段：**捕获阶段**、**目标阶段**和**冒泡阶段**。理解事件捕获和冒泡的区别以及它们的应用场景，对于处理复杂的事件逻辑非常重要。
+
+### 捕获阶段
+
+- **定义**：事件从最外层的祖先元素（`window`）向下传播到目标元素。
+- **顺序**：`window` → `document` → `<html>` → `<body>` → ... → 目标元素。
+- **特点**：
+    - 事件从外向内传播。
+    - 默认情况下，事件监听器不会在捕获阶段触发，除非显式设置
+
+### 目标阶段
+
+- **定义**：事件到达目标元素。
+- **特点**：
+    - 事件在目标元素上触发。
+    - 无论是捕获还是冒泡阶段，目标阶段都会执行。
+
+### 冒泡阶段
+
+- **定义**：事件从目标元素向上传播到最外层的祖先元素。
+- **顺序**：目标元素 → ... → `<body>` → `<html>` → `document` → `window`。
+- **特点**：
+    - 事件从内向外传播。
+    - 默认情况下，事件监听器在冒泡阶段触发。
+
+### 代码实例
+
+
+```html
+<div id="outer">
+    外部
+    <div id="inner">内部</div>
+</div>
+
+<script>
+    // 捕获阶段
+    document.getElementById('outer').addEventListener('click', function() {
+        console.log('捕获阶段：外部元素');
+    }, true);
+
+    document.getElementById('inner').addEventListener('click', function() {
+        console.log('捕获阶段：内部元素');
+    }, true);
+
+    // 冒泡阶段
+    document.getElementById('outer').addEventListener('click', function() {
+        console.log('冒泡阶段：外部元素');
+    }, false);
+
+    document.getElementById('inner').addEventListener('click', function() {
+        console.log('冒泡阶段：内部元素');
+    }, false);
+</script>
+```
+
+输出结果
+
+```
+捕获阶段：外部元素
+捕获阶段：内部元素
+冒泡阶段：内部元素
+冒泡阶段：外部元素
+```
+
+### 应用场景
+
+#### 拦截事件
+在捕获阶段拦截事件，阻止事件到达目标元素
+```js
+document.getElementById('outer').addEventListener('click', function(event) {
+    console.log('捕获阶段拦截事件');
+    event.stopPropagation(); // 阻止事件继续传播
+}, true);
+```
+
+#### 事件委托
+利用事件冒泡，将事件绑定到父元素上，通过事件目标（`event.target`）来判断具体是哪个子元素触发了事件。
+ **优点**：
+	- 减少事件监听器的数量，提高性能。
+	- 动态添加的子元素无需重新绑定事件。
+```js
+document.getElementById('parent').addEventListener('click', function(event) {
+    if (event.target.tagName === 'LI') {
+        console.log('点击了子元素：', event.target.textContent);
+    }
+});
+```
+
+#### 阻止默认行为
+
+在目标阶段或冒泡阶段阻止默认行为（如阻止链接跳转或表单提交）。
+
+```js
+document.getElementById('link').addEventListener('click', function(event) {
+    event.preventDefault(); // 阻止默认行为
+    console.log('链接点击，但不会跳转');
+});
+```
+
+#### 复杂事件处理
+
+在捕获和冒泡阶段分别处理事件，实现更复杂的逻辑
+
+```js
+// 捕获阶段记录日志
+document.getElementById('outer').addEventListener('click', function() {
+    console.log('捕获阶段：记录日志');
+}, true);
+
+// 冒泡阶段处理业务逻辑
+document.getElementById('outer').addEventListener('click', function() {
+    console.log('冒泡阶段：处理业务逻辑');
+}, false);
+```
