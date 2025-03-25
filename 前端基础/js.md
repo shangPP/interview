@@ -7311,3 +7311,132 @@ document.getElementById('outer').addEventListener('click', function() {
     console.log('冒泡阶段：处理业务逻辑');
 }, false);
 ```
+
+## Object和Map的区别
+
+### 1.键的类型
+
++ Object
+	+ 键只能是 **字符串** 或 **Symbol** 
+	+ 如果使用非字符串键（如数字、对象），会自动转换为字符串
+```js
+const obj = {};
+obj[1] = "value"; // 键会被转换为字符串 "1"
+obj[{ key: "value" }] = "value"; // 键会被转换为 "[object Object]"
+```
+
++ Map
+	+ 键可以是任意类型，包括对象、函数、基本类型
+```js
+const map = new Map();
+map.set(1, "value"); // 键是数字 1
+map.set({ key: "value" }, "value"); // 键是对象
+```
+
+### 2.键值对的顺序
+
++ Object
+	+ 在 ES6 之前，对象的键值对顺序是不确定的。
+	+ 在 ES6 及之后，对象的键值对顺序遵循以下规则：
+		+ 数字键按升序排列。
+		+ 字符串键按插入顺序排列。
+		+ Symbol 键按插入顺序排列。
++ Map
+	+ 键值对严格按插入顺序排列。
+```js
+const map = new Map();
+map.set(1, "value1");
+map.set(2, "value2");
+console.log([...map]); // [[1, "value1"], [2, "value2"]]
+```
+
+### 3.性能
+
++ Object
+	+ 在频繁添加和删除键值对的场景下，性能较差。（涉及到排序）
+	+ 适合静态键值对的存储和访问。
++ Map
+	+ 在频繁添加和删除键值对的场景下，性能更好。
+	+ 适合动态键值对的存储和访问。
+
+### 4.内置方法
+
++ Object
+	+ 提供了一些内置方法，如 `Object.keys()`、`Object.values()`、`Object.entries()`。
+	+ 需要手动管理键值对的增删改查。
++ Map
+	+  提供了专门的方法，如 `set()`、`get()`、`has()`、`delete()`、`clear()`。
+	+ 更适合键值对的动态操作。
+```js
+const map = new Map();
+map.set("key", "value");
+console.log(map.get("key")); // "value"
+console.log(map.has("key")); // true
+map.delete("key");
+console.log(map.size); // 0
+```
+
+### 5.大小（Size）
+
++ Object
+	+ 需要手动计算键值对的数量。
+```js
+const obj = { a: 1, b: 2 };
+console.log(Object.keys(obj).length); // 2
+```
+
++ Map
+	+ 提供了 `size` 属性，直接获取键值对的数量。
+```js
+const map = new Map();
+map.set("a", 1);
+map.set("b", 2);
+console.log(map.size); // 2
+```
+
+### 6.默认值
+
++ Object
+	+ 会继承原型链上的属性，可能导致意外的键冲突。
+```js
+const obj = {};
+console.log(obj.toString); // ƒ toString() { [native code] }
+```
+
++ Map
+	+ 只包含显式添加的键值对，不会继承原型链上的属性。
+```js
+const map = new Map();
+console.log(map.get("toString")); // undefined
+```
+
+### 7.序列化
+
++ Object
+	+ 可以直接使用 `JSON.stringify()` 和 `JSON.parse()` 进行序列化和反序列化。
+```js
+const obj = { a: 1, b: 2 };
+const str = JSON.stringify(obj);
+console.log(JSON.parse(str)); // { a: 1, b: 2 }
+```
+
++ Map
+	+ 不能直接使用 `JSON.stringify()` 序列化，需要先转换为数组或对象。
+```js
+const map = new Map();
+map.set("a", 1);
+map.set("b", 2);
+const str = JSON.stringify([...map]);
+console.log(str); // [["a",1],["b",2]]
+```
+
+### 8.使用场景
+
++ Object
+	+ 适合存储静态的、结构化的数据（如配置、DTO 对象）。
+	+ 适合需要序列化和反序列化的场景。
+	+ 适合需要与 JSON 兼容的场景。
++ Map
+	+ 适合需要频繁增删键值对的场景。
+	+ 适合键类型复杂或需要保持插入顺序的场景。
+	+ 适合需要避免原型链污染的场景。
