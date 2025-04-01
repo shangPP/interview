@@ -1937,21 +1937,21 @@ function control(list, num) {
 
 1. 使用typeof检测。当需要判断变量是否是number, string, boolean, function, undefined等类型时，可以使用typeof进行判断。
 
-   ```
-   typeof 3	//"number"
-   ```
+```js
+typeof 3	//"number"
+```
 
 2. 使用instanceof检测。instanceof运算符与typeof运算符相似，用于识别正在处理的对象的类型。与typeof方法不同的是，instanceof 方法要求开发者明确地确认对象为某特定类型。
 
-   ```
-   [] instanceof Object	//true
-   ```
+```js
+[] instanceof Object	//true
+```
 
 3. 使用constructor检测。constructor本来是原型对象上的属性，指向构造函数。但是根据实例对象寻找属性的顺序，若实例对象上没有实例属性或方法时，就去原型链上寻找，因此，实例对象也是能使用constructor属性的。
 
-   ```
-   [].constructor //ƒ Array() { [native code] }
-   ```
+```js
+[].constructor //ƒ Array() { [native code] }
+```
 
 4.  Object.prototype.toString.call(value)
 
@@ -3562,17 +3562,16 @@ console.log(8);
 区别点：
 
 1. call 和 apply 会调用函数，并且改变函数内部this指向。
-2. call 和 apply 传递的参数不一样，call 传递参数arg1,arg2...形式，apply 必须数组形式[arg]，bind可以分为多次传入，实现参数的合并
+2. call 和 apply 传递的参数不一样，call 传递参数arg1,arg2...形式，apply 必须数组形式\[arg]，bind可以分为多次传入，实现参数的合并
 3. bind 不会调用函数，可以改变函数内部this指向。
 4. call、apply是立即执行，bind是返回绑定this之后的函数，如果这个新的函数作为构造函数被调用，那么this不再指向传入给bind的第一个参数，而是指向新生成的对象
 
 **解析：**
 
 ### call方法
+
 改变函数内部this指向
-
 call()方法调用一个对象。简单理解为调用函数的方式，但是它可以改变函数的this指向。
-
 写法：fun.call(thisArg, arg1, arg3, ...) // thisArg为想要指向的对象，arg1,arg3为参数
 
 call 的主要作用也可以实现继承
@@ -3593,11 +3592,9 @@ console.log(son);
 ### apply方法
 
 apply()方法调用一个函数。简单理解为调用函数的方式，但是它可以改变函数的this指向。
-
-写法：fun.apply(thisArg, [argsArray])
-
-- thisArg:在fun函数运行时指定的this值
-- argsArray:传递的值，必须包含在数组里面
+写法：fun.apply(thisArg, \[argsArray])
+- thisArg：在fun函数运行时指定的this值
+- argsArray：传递的值，必须包含在数组里面
 - 返回值就是函数的返回值，因为他就是调用函数
 
 apply的主要应用，比如可以利用apply可以求得数组中最大值
@@ -3614,8 +3611,8 @@ bind()方法不会调用函数，但是能改变函数内部this指向
 
 写法：fun.bind(thisArg, arg1, arg2, ...)
 
-- thisArg:在fun函数运行时指定的this值
-- arg1,arg2:传递的其他参数
+- thisArg：在fun函数运行时指定的this值
+- arg1,arg2：传递的其他参数
 - 返回由指定的this值和初始化参数改造的原函数拷贝
 
 ```js
@@ -4266,14 +4263,28 @@ inheritPrototype(Child, Parent);
 
 ## new会发生什么
 
-1. 创建空对象；
-   var obj = {};
-2. 设置新对象的constructor属性为构造函数的名称，设置新对象的 ** \_\_proto\_\_** 属性指向构造函数的prototype对象；
-   obj.**\_\_proto\_\_** = ClassA.prototype;
-   扩展了新对象的原型链。
-3. 使用新对象调用函数，函数中的this被指向新实例对象：
-   ClassA.call(obj);　　//{}.构造函数();
-4. 返回this指针。当存在显示的返回时，返回return后面的内容。新建的空对象作废。
+当执行 `new Constructor(...args)` 时，会发生如下事情：
+
+1. 创建一个新对象；
+   创建一个空的普通 Javascript 对象（即 `{}`）
+```js
+let obj ={}
+```
+1. 设置对象的原型
+	 将该对象的 `[[Prototype]]` （即 `__proto__`）指向构造函数的 `prototype` 属性
+```js
+obj.__proto__ = Constructor.prototype;
+```
+
+3. 绑定 `this` 并执行构造函数
+	将构造函数内部的 `this` 绑定到新创建的对象，并执行构造函数（传入参数）
+```js
+Constructor.apply(obj, args);
+```
+
+4. 返回结果
+	如果构造函数返回一个 **对象** （包括 `Array` 、`Date` 、自定义对象等），则返回该对象。
+	如果构造函数返回 **非对象值** （如 `undefined` 、`number` 、`string`），则忽略返回值，直接返回步骤 1 创建的对象。
 
 ```js
 function test() {
@@ -4290,11 +4301,11 @@ var c = new test();
 **手写new**
 
 ```js
-function selfNew(fn, ...args) {
+function selfNew(Constructor, ...args) {
     // 创建一个instance对象，该对象的原型是fn.prototype
-    let instance = Object.create(fn.prototype);
+    let instance = Object.create(Constructor.prototype);
     // 调用构造函数，使用apply，将this指向新生成的对象
-    let res = fn.apply(instance, args);
+    let res = Constructor.apply(instance, args);
     // 如果fn函数有返回值，并且返回值是一个对象或方法，则返回该对象，否则返回新生成的instance对象
     return ((typeof res === "object" && res !== null) || typeof res === "function") ? res : instance;
 }
@@ -4458,9 +4469,9 @@ obj.b();    // 'GLOBAL'
 
    上面的例子，就完全可以说明箭头函数继承而来的this指向永远不变。对象obj的方法b是使用箭头函数定义的，这个函数中的this就**永远指向**它定义时所处的全局执行环境中的this，即便这个函数是作为对象obj的方法调用，this依旧指向Window对象。
 
-4. .call()/.apply()/.bind()无法改变箭头函数中this的指向
+4. .call() .apply() .bind()无法改变箭头函数中this的指向
 
-   .call()/.apply()/.bind()方法可以用来动态修改函数执行时this的指向，但由于箭头函数的this定义时就已经确定且永远不会改变。所以使用这些方法永远也改变不了箭头函数this的指向，虽然这么做代码不会报错。
+   .call() .apply() .bind()方法可以用来动态修改函数执行时this的指向，但由于箭头函数的this定义时就已经确定且永远不会改变。所以使用这些方法永远也改变不了箭头函数this的指向，虽然这么做代码不会报错。
 
 ```js
 var id = 'Global';  // let 的话会变成undefined
@@ -5915,7 +5926,7 @@ let throttle = (fn,time = 1000) => {
 
   ```js
   function throttle(fn, delay) {
-      var previous = 0;
+      var previous = Date.now();
       // 使用闭包返回一个函数并且用到闭包函数外面的变量previous
       return function() {
           var _this = this;
@@ -6816,7 +6827,7 @@ JS 语言的一大特点就是单线程，也就是说，同一个时间只能�
 3）微任务执行完成后，会读取宏任务队列中排在最前的第一个宏任务（注意宏任务是一个个取），执行该宏任务，如果执行过程中，遇到微任务，依次加入微任务队列
 4）宏任务执行完成后，再次读取微任务队列里的任务，依次类推。
 
-**需要注意的是:当前执行栈执行完毕时会立刻先处理所有微任务队列中的事件, 然后再去宏任务队列中取出一个 事件。同一次事件循环中, 微任务永远在宏任务之前执行。**
+**需要注意的是：当前执行栈执行完毕时会立刻先处理所有微任务队列中的事件, 然后再去宏任务队列中取出一个 事件。同一次事件循环中, 微任务永远在宏任务之前执行。**
 
 ![事件循环](image/事件循环.png)
 
@@ -6962,7 +6973,7 @@ console.log("end");
 
 ### 如果滚动过快，高频率触发事件解决方案
 
-节流：在一段时间内不管触发了多少次都只认为触发了一次，等计时结束进行响应（假设设置的时间为2000ms，再触发了事件的2000ms之内，你在多少触发该事件，都不会有任何作用，它只为第一个事件等待2000ms。时间一到，它就会执行了。 ）
+节流：在一段时间内不管触发了多少次都只认为触发了一次，等计时结束进行响应（假设设置的时间为2000ms，在触发了事件的2000ms之内，你再多少次触发该事件，都不会有任何作用，它只为第一个事件等待2000ms。时间一到，它就会执行了。 ）
 
 ```javascript
 //时间戳方式
@@ -7275,8 +7286,8 @@ document.getElementById('outer').addEventListener('click', function(event) {
 #### 事件委托
 利用事件冒泡，将事件绑定到父元素上，通过事件目标（`event.target`）来判断具体是哪个子元素触发了事件。
  **优点**：
-	- 减少事件监听器的数量，提高性能。
-	- 动态添加的子元素无需重新绑定事件。
++ 减少事件监听器的数量，提高性能。
++ 动态添加的子元素无需重新绑定事件。
 ```js
 document.getElementById('parent').addEventListener('click', function(event) {
     if (event.target.tagName === 'LI') {
@@ -7353,7 +7364,7 @@ console.log([...map]); // [[1, "value1"], [2, "value2"]]
 ### 3.性能
 
 + Object
-	+ 在频繁添加和删除键值对的场景下，性能较差。（涉及到排序）
+	+ 在频繁添加和删除键值对的场景下，性能较差。（涉及到动态内存分配（采用哈希表，可能需要动态扩容及哈希冲突）和垃圾回收开销（删除属性不会立即释放内存，而是标记为“空洞”。频繁删除会导致内存碎片化，触发垃圾回收，进而引发停顿。））
 	+ 适合静态键值对的存储和访问。
 + Map
 	+ 在频繁添加和删除键值对的场景下，性能更好。
