@@ -1513,3 +1513,177 @@ js模块化方案很多有AMD、CommonJS、UMD、ES6 Module等。css模块化开
 页面上的每个独立的、可视/可交互区域视为一个组件
 每个组件对应一个工程目录，组件所需的各种资源都在这个目录下就近维护；由于组件具有独立性，因此组件与组件之间可以自由组合；页面不过是组件的容器，负责组合组件形成功能完整的界面；
 
+## Vue2和Vue3的区别
+
+### 1.架构与性能
+
++ 响应式系统
+	+ Vue2：使用 `Object.defineProperty` 实现响应式
+	+ Vue3：使用 `Proxy` 重构响应式系统，性能更好，支持更多数据类型
++ 打包体积
+	+ Vue3通过 Tree-shaking 优化，减少了约 41% 的打包体积
++ 渲染性能
+	+ Vue3的虚拟DOM重写，更新性能提升了133%
+	+ 编译时优化，减少运行时开销
+
+### 2.Composition API
+
++ Vue2：主要使用Options API（data，methods，computed等选项）【选项式】
++ Vue3：引入了 Composition API（setup函数），提供了更好的逻辑复用和代码组织【组合式】
+```js
+// Vue 3 Composition API 示例
+import { ref, computed } from 'vue'
+
+export default {
+  setup() {
+    const count = ref(0)
+    const double = computed(() => count.value * 2)
+    
+    function increment() {
+      count.value++
+    }
+    
+    return { count, double, increment }
+  }
+}
+```
+
+### 3.组件相关变化
+
++ Fragment：Vue3组件支持多根节点
++ Teleport：新增 `<teleport>` 组件，可将内容渲染到DOM任何位置
++ Suspense：新增实验性 `<suspense>` 组件，处理异步组件加载状态
+
+### 4.生命周期变化
+
+| Vue2          | Vue3（Composition API） |
+| ------------- | --------------------- |
+| beforeCreate  | 使用 setup()            |
+| created       | 使用 setup()            |
+| beforeMount   | onBeforeMount         |
+| mounted       | onMounted             |
+| beforeUpdate  | onBeforeUpdate        |
+| updated       | onUpdated             |
+| beforeDestroy | onBeforeUnmount       |
+| destroyed     | onUnmounted           |
+| errorCaptured | onErrorCaptured       |
+
+### 5.其他重要变化
+
++ TypeScript支持：Vue3使用TypeScript重写，提供更好的TS支持
++ 自定义渲染器API：允许自定义渲染逻辑
++ 全局API变更
+	+ `Vue.nextTick` —》`import {nextTick} from "vue"` 
+	+ `Vue.component` —》`app.component` 
+	+ `Vue.directive` —》`app.directive` 
++ v-model
+	+ Vue2：一个组件只能有一个v-model
+	+ Vue3：支持多个v-model，并可自定义修饰符
+```html
+<!-- Vue 3 多 v-model 示例 -->
+<ChildComponent v-model:title="pageTitle" v-model:content="pageContent" />
+```
+
+### 6.迁移注意事项
+
+1. 事件总线（`$on`、`$off`、`$once`）被移除，推荐使用mitt等第三方库
+2. 过滤器（filters）被移除，推荐使用方法或计算属性
+3. `$children` 被移除，推荐使用`$refs` 
+4. 异步组件需要使用`defineAsyncComponent` 创建
+
+## ref和reactive的区别
+
+### 1.基本定义
+
+|          | `ref`                         | `reactive`                    |
+| -------- | ----------------------------- | ----------------------------- |
+| **创建方式** | `const x = ref(initialValue)` | `const obj = reactive({...})` |
+| **返回值**  | 返回一个带有 `value` 属性的响应式对象       | 直接返回响应式代理对象                   |
+| **数据类型** | 适用于基本类型和对象                    | 仅适用于对象/数组                     |
+
+### 2.核心区别
+
+#### （1）访问方式不同
+
+```js
+// ref
+const count = ref(0)
+console.log(count.value) // 访问需要 .value
+
+// reactive
+const state = reactive({ count: 0 })
+console.log(state.count) // 直接访问属性
+```
+
+#### （2）重新赋值的响应性
+
+```js
+// ref - 可以整体替换（保持响应性）
+const objRef = ref({ a: 1 })
+objRef.value = { a: 2 } // 仍然响应式
+
+// reactive - 不能整体替换（会失去响应性）
+let state = reactive({ a: 1 })
+state = { a: 2 } // ❌ 失去响应性
+```
+
+#### （3）模板中的使用
+
+```vue
+<!-- ref -->
+<template>{{ count }}</template> <!-- 自动解包 .value -->
+
+<!-- reactive -->
+<template>{{ state.count }}</template>
+```
+
+### 3.使用场景对比
+
+|**场景**|推荐使用|原因|
+|---|---|---|
+|基本类型（string/number/boolean）|`ref`|更直观，且 reactive 对基本类型无效|
+|对象/数组|均可|简单对象用 `reactive`，需要重新赋值时用 `ref`|
+|组合逻辑返回多个值|`ref`|可以返回独立的响应式变量，而 reactive 需要保持对象引用|
+|模板直接使用|均可|`ref` 在模板中自动解包，`reactive` 需通过属性访问|
+
+### 4.原理差异
+
+- **`ref`**：
+    - 内部用 `reactive` 包装对象
+    - 通过 `.value` 属性访问实现响应性
+    - 基本类型通过对象包装实现响应式
+- **`reactive`**：
+    - 基于 ES6 Proxy 实现
+    - 直接代理整个对象
+    - 对基本类型无效（如 `reactive(0)` 不会生效）
+
+### 5.互相转换
+
+```js
+// ref -> reactive
+const r = ref({ a: 1 })
+const state = reactive({ data: r.value }) // 通常不需要这样做
+
+// reactive -> ref
+import { toRefs } from 'vue'
+const state = reactive({ x: 1 })
+const { x } = toRefs(state) // 解构为 ref
+```
+
+### 6.最佳实践建议
+
+1. **优先用 `ref`**：
+    - 统一使用 `ref` 可以避免 `.value` 和直接访问的混淆
+    - 适合大多数场景，特别是组合函数返回值
+2. **用 `reactive` 的情况**：
+    - 需要维护复杂对象状态（如表单）
+    - 明确不需要重新赋值的对象
+3. **组合式函数返回**：
+```js
+// 推荐返回 ref 集合
+function useFeature() {
+  const x = ref(0)
+  const y = ref(0)
+  return { x, y } // 而不是 reactive({ x, y })
+}
+```

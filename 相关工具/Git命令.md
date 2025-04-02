@@ -6,9 +6,11 @@
 
 ## 配置开发者用户名和邮箱
 
+```shell
 git config user.name "name"
 
 git config user.email "name@qq.com"
+```
 
 每次提交的时候都会生成一条提交记录，其中包含当前配置的用户名和邮箱
 
